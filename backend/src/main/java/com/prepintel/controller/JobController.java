@@ -35,13 +35,13 @@ public class JobController {
         this.geminiService = geminiService;
     }
 
-    // 1. Get List of all Companies (with report counts)
+    // 1. Get List of all Companies (with problem counts)
     @GetMapping("/companies")
     public ResponseEntity<List<Map<String, Object>>> getAllCompanies() {
         List<Company> companies = companyRepository.findAll();
-        List<Object[]> reportCounts = reportRepository.countReportsByCompany();
+        List<Object[]> problemCounts = reportRepository.countProblemsByCompany();
         Map<String, Long> countMap = new HashMap<>();
-        for (Object[] row : reportCounts) {
+        for (Object[] row : problemCounts) {
             countMap.put((String) row[0], (Long) row[1]);
         }
 
@@ -52,9 +52,9 @@ public class JobController {
             map.put("slug", c.getSlug());
             map.put("oaPattern", c.getOaPattern());
             map.put("hasLimitedData", c.isHasLimitedData());
-            map.put("reportCount", countMap.getOrDefault(c.getSlug(), 0L));
+            map.put("problemCount", countMap.getOrDefault(c.getSlug(), 0L));
             return map;
-        }).sorted((a, b) -> Long.compare((Long) b.get("reportCount"), (Long) a.get("reportCount")))
+        }).sorted((a, b) -> Long.compare((Long) b.get("problemCount"), (Long) a.get("problemCount")))
         .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);

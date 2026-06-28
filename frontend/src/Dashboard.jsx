@@ -273,7 +273,7 @@ export default function App() {
                   <div className="min-w-0 flex-1 flex items-center justify-between">
                     <div className="min-w-0 pr-2">
                       <span className="truncate font-medium text-[13px] block">{c.name}</span>
-                      <span className="text-[10px] text-gray-600">{c.reportCount || 0} reports</span>
+                      <span className="text-[10px] text-gray-600">{c.problemCount || 0} questions</span>
                     </div>
                     {c.hasLimitedData && (
                       <span className="text-[9px] text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20 whitespace-nowrap" title="Limited Data">⚠ Limited</span>
