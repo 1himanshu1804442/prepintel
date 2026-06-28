@@ -66,8 +66,8 @@ function ProgressRing({ percent, size = 36 }) {
   const circ = 2 * Math.PI * r;
   const offset = circ - (Math.min(percent, 100) / 100) * circ;
   return (
-    <svg width={size} height={size} className="transform -rotate-90">
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#6C5CE7" strokeWidth="3"
         strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
         className="transition-all duration-700" />
@@ -103,6 +103,7 @@ export default function App() {
   const [companySearch, setCompanySearch] = useState('');
   const [sortBy, setSortBy] = useState('frequency');
   const [filterDiff, setFilterDiff] = useState('All');
+  const [timeframe, setTimeframe] = useState('all_time');
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [aiSummary, setAiSummary] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
@@ -120,13 +121,13 @@ export default function App() {
     }).catch(() => {});
   }, []);
 
-  // Fetch problems when company changes
+  // Fetch problems when company or timeframe changes
   useEffect(() => {
     if (!selectedSlug) return;
     setLoadingProblems(true);
     setAiSummary(null);
     Promise.all([
-      fetch(`${API}/companies/${selectedSlug}/problems`).then(r => r.json()),
+      fetch(`${API}/companies/${selectedSlug}/problems?timeframe=${timeframe}`).then(r => r.json()),
       fetch(`${API}/companies/${selectedSlug}/stats`).then(r => r.json()),
     ]).then(([probs, stats]) => {
       setProblems(probs);
@@ -139,7 +140,11 @@ export default function App() {
     fetch(`${API}/companies/${selectedSlug}/ai-summary`)
       .then(r => r.json())
       .then(data => {
-        try { setAiSummary(JSON.parse(data.summary)); }
+        try { 
+          // Strip markdown json formatting if Gemini added it
+          let cleanJson = data.summary.replace(/```json/gi, '').replace(/```/g, '').trim();
+          setAiSummary(JSON.parse(cleanJson)); 
+        }
         catch { setAiSummary({ recommendation: data.summary }); }
         setAiLoading(false);
       })
@@ -147,7 +152,7 @@ export default function App() {
         setAiSummary(null);
         setAiLoading(false);
       });
-  }, [selectedSlug]);
+  }, [selectedSlug, timeframe]);
 
   // Auto-select first company
   useEffect(() => {
@@ -372,7 +377,7 @@ export default function App() {
                   <div className="text-2xl font-display font-bold text-white">
                     {solvedCount} <span className="text-sm text-gray-500 font-normal">/ {highConfidenceCount}</span>
                   </div>
-                  <div className="text-[11px] text-gray-500 mt-0.5">High-confidence questions · {solvedPercent}%</div>
+                  <div className="text-[11px] text-gray-500 mt-0.5">Top {selectedCompany?.name} questions · {solvedPercent}%</div>
                   <div className="mt-3 w-full h-1.5 bg-surface-600 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full rounded-full bg-gradient-to-r from-accent to-accent-light"
@@ -444,6 +449,24 @@ export default function App() {
                     onChange={e => setSearchQuery(e.target.value)}
                     className="w-full bg-surface-700 border border-surface-500 rounded-lg pl-9 pr-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:border-accent focus:outline-none transition-colors"
                   />
+                </div>
+
+                <div className="flex items-center gap-1 bg-surface-700 rounded-lg p-0.5 border border-surface-500">
+                  {[
+                    { label: 'Any', val: 'all_time' },
+                    { label: '30d', val: '30_days' },
+                    { label: '3m', val: '3_months' },
+                    { label: '6m', val: '6_months' },
+                    { label: '1y', val: '1_year' }
+                  ].map(t => (
+                    <button
+                      key={t.val}
+                      onClick={() => setTimeframe(t.val)}
+                      className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors ${timeframe === t.val ? 'bg-accent/20 text-accent-light' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="flex items-center gap-1 bg-surface-700 rounded-lg p-0.5 border border-surface-500">
@@ -569,10 +592,10 @@ export default function App() {
         </main>
 
         {/* ─── Right Sidebar: Latest Reports ─── */}
-        <aside className="w-72 flex-shrink-0 glass-panel border-l border-surface-600 flex flex-col overflow-hidden">
-          <div className="p-3 border-b border-surface-600 flex items-center gap-2">
+        <aside className="w-80 flex-shrink-0 glass-panel border-l border-surface-600 flex flex-col">
+          <div className="p-4 border-b border-surface-600 flex items-center gap-2">
             <Flame className="w-4 h-4 text-danger" />
-            <span className="text-xs font-display font-semibold text-white">Latest Reports</span>
+            <h3 className="font-display font-bold text-sm text-white">Global Feed</h3>
             <div className="pulse-dot w-1.5 h-1.5 rounded-full bg-danger ml-auto" />
           </div>
           <div className="flex-1 overflow-y-auto">
