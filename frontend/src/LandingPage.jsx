@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Target, Brain, LineChart, Code2, Sparkles, Database } from 'lucide-react';
+import { Target, Brain, LineChart, Code2, Sparkles, Database, Check, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function LandingPage() {
@@ -21,14 +21,17 @@ export default function LandingPage() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-accent-light flex items-center justify-center shadow-lg shadow-accent/20">
             <Target className="w-5 h-5 text-white" />
           </div>
-          <span className="font-display font-bold text-xl tracking-tight text-white">PrepIntel<span className="text-accent-light">Pro</span></span>
+          <span className="font-display font-bold text-xl tracking-tight text-white">PrepIntel</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="https://github.com/1himanshu1804442/prepintel" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">GitHub</a>
+          <button className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Features</button>
+          <button className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Companies</button>
+          <button className="text-sm font-medium text-gray-400 hover:text-white transition-colors">About</button>
+          <a href="https://github.com/1himanshu1804442/prepintel" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">⭐ GitHub</a>
           <button 
             onClick={() => navigate('/dashboard')}
             className="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-sm font-semibold text-white transition-all">
-            Enter App
+            Launch Dashboard
           </button>
         </div>
       </nav>
@@ -53,7 +56,7 @@ export default function LandingPage() {
           </h1>
           
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Stop guessing what to study. PrepIntel tracks real interview experiences, analyzes company-specific patterns, and builds a personalized study plan to get you hired.
+            Stop guessing what to study. PrepIntel tracks real interview experiences, analyzes real interview trends, and builds a personalized study plan to get you hired.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -69,35 +72,98 @@ export default function LandingPage() {
               Browse Companies
             </button>
           </div>
+
+          <div className="mt-8 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm font-medium text-gray-400">
+            <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-accent-light" /> 25 Companies</span>
+            <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-accent-light" /> 400+ Community Reports</span>
+            <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-accent-light" /> AI Study Plans</span>
+            <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-accent-light" /> Updated Daily</span>
+          </div>
+        </motion.div>
+
+        {/* Hero Dashboard Image Mockup */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="mt-16 w-full max-w-4xl mx-auto rounded-2xl border border-surface-600 bg-surface-800/50 p-2 shadow-2xl backdrop-blur-xl"
+        >
+          <div className="rounded-xl border border-surface-600 bg-surface-900 overflow-hidden flex flex-col">
+            <div className="h-10 border-b border-surface-600 flex items-center px-4 gap-2 bg-surface-800/80">
+              <div className="w-3 h-3 rounded-full bg-danger/80" />
+              <div className="w-3 h-3 rounded-full bg-warning/80" />
+              <div className="w-3 h-3 rounded-full bg-success/80" />
+            </div>
+            <div className="p-6 flex flex-col sm:flex-row gap-6 text-left">
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-surface-700 flex items-center justify-center text-xl">🟨</div>
+                  <div>
+                    <h3 className="font-display font-bold text-white text-lg">Google</h3>
+                    <p className="text-xs text-gray-500">2,492 community reports</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-surface-800 rounded-lg p-3 border border-surface-600">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Top Topics</span>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center justify-between text-xs"><span className="text-gray-300">Graphs</span> <span className="text-success flex items-center gap-1">24% <TrendingUp className="w-3 h-3"/></span></div>
+                      <div className="flex items-center justify-between text-xs"><span className="text-gray-300">DP</span> <span className="text-success flex items-center gap-1">18% <TrendingUp className="w-3 h-3"/></span></div>
+                    </div>
+                  </div>
+                  <div className="bg-surface-800 rounded-lg p-3 border border-surface-600 flex flex-col justify-center">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Difficulty Split</span>
+                    <div className="w-full h-2 bg-surface-600 rounded-full overflow-hidden flex">
+                      <div className="bg-success/60 h-full w-[25%]" />
+                      <div className="bg-warning/60 h-full w-[45%]" />
+                      <div className="bg-danger/60 h-full w-[30%]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="w-64 bg-accent/10 border border-accent/20 rounded-xl p-4 flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-accent-light" />
+                  <span className="text-xs font-semibold text-white">AI Coach</span>
+                </div>
+                <p className="text-xs text-gray-300 leading-relaxed mb-4">
+                  Recent reports indicate Google interviews have shifted heavily toward graph traversal and dynamic programming. 
+                </p>
+                <button className="mt-auto w-full py-2 bg-accent hover:bg-accent-light transition-colors rounded-lg text-xs font-semibold text-white">
+                  Generate Study Plan
+                </button>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Features Grid */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="grid md:grid-cols-3 gap-6 mt-24 text-left w-full"
+          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+          className="grid md:grid-cols-3 gap-6 mt-24 text-left w-full max-w-5xl mx-auto"
         >
           <div className="glass-panel p-6 rounded-2xl">
             <div className="w-10 h-10 rounded-lg bg-surface-700 flex items-center justify-center mb-4">
               <Database className="w-5 h-5 text-accent-light" />
             </div>
-            <h3 className="text-lg font-display font-bold text-white mb-2">Live Company Data</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">We aggregate thousands of real interview experiences to find exactly what FAANG and top startups are asking this month.</p>
+            <h3 className="text-lg font-display font-bold text-white mb-2">Community Reports</h3>
+            <p className="text-sm text-gray-400 leading-relaxed">Track what candidates actually faced.</p>
           </div>
           <div className="glass-panel p-6 rounded-2xl">
             <div className="w-10 h-10 rounded-lg bg-surface-700 flex items-center justify-center mb-4">
               <Brain className="w-5 h-5 text-accent-light" />
             </div>
-            <h3 className="text-lg font-display font-bold text-white mb-2">🤖 AI Coach Insights</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">Powered by Gemini. Get instant analysis on any company's interview patterns, difficulty distributions, and core topics.</p>
+            <h3 className="text-lg font-display font-bold text-white mb-2">AI Study Plans</h3>
+            <p className="text-sm text-gray-400 leading-relaxed">Generate a personalized roadmap in seconds.</p>
           </div>
           <div className="glass-panel p-6 rounded-2xl">
             <div className="w-10 h-10 rounded-lg bg-surface-700 flex items-center justify-center mb-4">
               <LineChart className="w-5 h-5 text-accent-light" />
             </div>
-            <h3 className="text-lg font-display font-bold text-white mb-2">Personalized Plans</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">Enter your interview date, and PrepIntel will generate a day-by-day roadmap targeting the highest ROI topics.</p>
+            <h3 className="text-lg font-display font-bold text-white mb-2">Interview Trends</h3>
+            <p className="text-sm text-gray-400 leading-relaxed">Discover which topics are rising this month.</p>
           </div>
         </motion.div>
       </main>
