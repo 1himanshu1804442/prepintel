@@ -239,7 +239,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                         sourceSuccess = true;
                         break; 
                     } catch (Exception e) {
-                        System.out.println("[PrepIntel Seeder] Source 1 failed for " + company.getName() + " (" + dbTimeframe + "): " + url1);
+                        // Source 1 failed, ignore and try Source 2
                     }
 
                     if (!sourceSuccess) {
@@ -248,7 +248,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                             sourceSuccess = true;
                             break;
                         } catch (Exception e) {
-                            System.out.println("[PrepIntel Seeder] Source 2 failed for " + company.getName() + " (" + dbTimeframe + "): " + url2);
+                            // Source 2 failed, ignore
                         }
                     }
                 }
