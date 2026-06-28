@@ -583,50 +583,48 @@ export default function App() {
                 <div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Interview Pattern</h4>
                   <div className="bg-surface-800 rounded-lg p-3 space-y-2 border border-surface-600 text-xs">
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
-                      2 Hard Coding Rounds
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
-                      45 minutes each
-                    </div>
+                    {(aiSummary.interviewPattern || [selectedCompany?.oaPattern || 'Unknown Pattern', '60-90 minutes typically']).map((pattern, i) => (
+                      <div key={i} className="flex items-center gap-2 text-gray-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
+                        {pattern}
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 <div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Trending</h4>
                   <div className="space-y-2 border border-surface-600 bg-surface-800 rounded-lg p-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300">Graphs</span>
-                      <span className="text-success font-medium flex items-center gap-1">↑ Rising</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300">Dynamic Programming</span>
-                      <span className="text-success font-medium flex items-center gap-1">↑ Rising</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300">Trie</span>
-                      <span className="text-danger font-medium flex items-center gap-1">↓ Falling</span>
-                    </div>
+                    {aiSummary.trendingTopics ? aiSummary.trendingTopics.map((t, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-300">{t.topic}</span>
+                        <span className={`${(t.trend || '').includes('↑') ? 'text-success' : 'text-danger'} font-medium flex items-center gap-1`}>{t.trend}</span>
+                      </div>
+                    )) : (
+                      <div className="text-xs text-gray-500 italic">Not enough data to determine trends.</div>
+                    )}
                   </div>
                 </div>
 
                 <div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Most Important Topics</h4>
                   <div className="space-y-2.5 bg-surface-800 rounded-lg p-3 border border-surface-600">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-gray-300">Graph</span>
-                      <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden"><div className="w-[85%] h-full bg-accent rounded-full"/></div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-gray-300">DP</span>
-                      <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden"><div className="w-[70%] h-full bg-accent rounded-full"/></div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-gray-300">Heap</span>
-                      <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden"><div className="w-[40%] h-full bg-surface-500 rounded-full"/></div>
-                    </div>
+                    {(companyStats?.topTopics || []).slice(0, 3).map((t, i) => {
+                       const maxCount = companyStats?.topTopics?.[0]?.count || 1;
+                       const pct = Math.round((t.count / maxCount) * 100);
+                       const barColor = i === 0 ? 'bg-accent' : i === 1 ? 'bg-accent/80' : 'bg-surface-500';
+                       return (
+                         <div key={i} className="flex flex-col gap-1">
+                           <span className="text-xs text-gray-300">{t.topic}</span>
+                           <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden">
+                             <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                           </div>
+                         </div>
+                       );
+                    })}
+                    {(!companyStats?.topTopics || companyStats.topTopics.length === 0) && (
+                      <div className="text-xs text-gray-500 italic">No topic data available.</div>
+                    )}
                   </div>
                 </div>
 

@@ -190,6 +190,8 @@ public class JobController {
         String prompt = context + "\n\nBased on the above interview data for " + company.getName() +
                 ", provide a JSON response with these fields:\n" +
                 "- focusAreas: array of 3-5 key topic areas to focus on\n" +
+                "- interviewPattern: array of 2 strings summarizing the format and duration based on the OA Pattern provided (e.g. ['Aptitude + 1 Easy Coding', '90 mins total'])\n" +
+                "- trendingTopics: array of 3 objects with {topic: string, trend: '↑ Rising' or '↓ Falling'} based on what seems most important\n" +
                 "- difficultyBreakdown: string describing the typical difficulty distribution\n" +
                 "- recommendation: string with a 2-3 sentence preparation strategy\n" +
                 "- estimatedPrepDays: number of days recommended for thorough preparation\n" +
