@@ -109,6 +109,7 @@ export default function App() {
   const [inspectProblem, setInspectProblem] = useState(null);
   const [loadingProblems, setLoadingProblems] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
   // Fetch companies on mount
   useEffect(() => {
@@ -226,9 +227,15 @@ export default function App() {
             {companies.length} companies
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="pulse-dot w-2 h-2 rounded-full bg-success" />
-          <span className="text-[10px] text-gray-500">Updated {updatedAgo}</span>
+        <div className="flex items-center gap-4">
+          <button onClick={() => setShowAboutModal(true)} className="text-[11px] text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors">
+            <BookOpen className="w-3.5 h-3.5" />
+            About
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="pulse-dot w-2 h-2 rounded-full bg-success" />
+            <span className="text-[10px] text-gray-500">Updated {updatedAgo}</span>
+          </div>
         </div>
       </header>
 
@@ -688,6 +695,11 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+
+      {/* ─── About Modal ─── */}
+      <AnimatePresence>
+        {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
@@ -853,6 +865,71 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
               </button>
             </div>
           )}
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════
+// ABOUT MODAL
+// ═══════════════════════════════════════════
+function AboutModal({ onClose }) {
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 z-[60]"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] max-h-[80vh] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden"
+      >
+        <div className="p-5 border-b border-surface-600 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-accent-light" />
+            <h3 className="font-display font-bold text-lg text-white">About PrepIntel Pro</h3>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[60vh] space-y-5">
+          <p className="text-sm text-gray-300 leading-relaxed">
+            <strong>PrepIntel Pro</strong> is an AI-powered interview intelligence dashboard. It aggregates thousands of community-reported LeetCode questions across top global tech giants and Indian product companies.
+          </p>
+
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Core Features</h4>
+            <ul className="space-y-2 text-xs text-gray-400">
+              <li className="flex items-start gap-2">
+                <Target className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <span><strong>Curated Datasets:</strong> Questions are intelligently capped to the top 400 most frequently asked and recent questions per company to maximize your ROI.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <span><strong>Gemini AI Integration:</strong> Instantly get company-specific summaries, difficulty breakdowns, and fully personalized, day-by-day study plans.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <BarChart3 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <span><strong>Advanced Analytics:</strong> Track your progress against a high-confidence set (top 250 problems), visualize difficulty distributions, and analyze top topic trends.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Flame className="w-4 h-4 text-danger shrink-0 mt-0.5" />
+                <span><strong>Live Reports Feed:</strong> Stay updated with the latest interview experiences pulled directly from community discussions and datasets.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="glass-panel p-4 rounded-xl border border-surface-600 bg-surface-700/50">
+            <p className="text-[11px] text-gray-400">
+              Data is sourced from popular open-source repositories and dynamically merged. Companies marked with a <span className="text-warning bg-warning/10 px-1 rounded border border-warning/20">⚠ Limited</span> badge have sparse public data available.
+            </p>
+          </div>
         </div>
       </motion.div>
     </>
