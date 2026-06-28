@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, ChevronRight, ExternalLink, Check, X, Sparkles,
   Calendar, BarChart3, Clock, Filter, ArrowUpDown, TrendingUp,
-  Zap, Target, BookOpen, Flame, ChevronDown, Loader2, CheckCircle2
+  Zap, Target, BookOpen, Flame, ChevronDown, Loader2, CheckCircle2,
+  Database, MessageSquare, Globe
 } from 'lucide-react';
 
 const API = 'http://localhost:8080/api';
