@@ -18,6 +18,10 @@ import java.net.http.HttpResponse;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class DatabaseSeeder implements CommandLineRunner {
@@ -26,6 +30,8 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final ProblemRepository problemRepository;
     private final InterviewReportRepository reportRepository;
     private final HttpClient httpClient;
+
+    private static final int MAX_PROBLEMS_PER_COMPANY = 400;
 
     public DatabaseSeeder(CompanyRepository companyRepository,
                           ProblemRepository problemRepository,
@@ -62,6 +68,11 @@ public class DatabaseSeeder implements CommandLineRunner {
         COMPANIES.put("meesho", "Meesho");
         COMPANIES.put("cred", "CRED");
         COMPANIES.put("razorpay", "Razorpay");
+        COMPANIES.put("zomato", "Zomato");
+        COMPANIES.put("swiggy", "Swiggy");
+        COMPANIES.put("makemytrip", "MakeMyTrip");
+        COMPANIES.put("oyo", "OYO");
+        COMPANIES.put("ola", "Ola");
         // Indian Service Companies
         COMPANIES.put("infosys", "Infosys");
         COMPANIES.put("tcs", "TCS");
@@ -85,6 +96,11 @@ public class DatabaseSeeder implements CommandLineRunner {
         OA_PATTERNS.put("meesho", "2 Medium-Hard Coding, Focus on Greedy & Two Pointers");
         OA_PATTERNS.put("cred", "Take-home assignment + 2 Medium Coding, Full-stack focus");
         OA_PATTERNS.put("razorpay", "2 Coding (Medium-Hard) + System Design basics");
+        OA_PATTERNS.put("zomato", "DSA + SQL + Case Study Round");
+        OA_PATTERNS.put("swiggy", "DSA Medium + Product Sense");
+        OA_PATTERNS.put("makemytrip", "Aptitude + DSA Medium");
+        OA_PATTERNS.put("oyo", "DSA + Behavioural Round");
+        OA_PATTERNS.put("ola", "DSA Heavy + System Design");
         OA_PATTERNS.put("infosys", "Aptitude + Technical MCQs + 1 Easy-Medium Coding, SP track harder");
         OA_PATTERNS.put("tcs", "Aptitude + Verbal + 1 Easy Coding (C/Java/Python)");
         OA_PATTERNS.put("wipro", "Aptitude + Technical MCQs + 1 Easy Coding, English test");
@@ -147,19 +163,35 @@ public class DatabaseSeeder implements CommandLineRunner {
         TOPIC_MAP.put(977, "Array, Two Pointers, Sorting");
     }
 
-    private static final Map<String, String> TIMEFRAME_MAPPINGS = Map.of(
-        "thirty-days", "30_days",
-        "three-months", "3_months",
-        "six-months", "6_months",
-        "one-year", "1_year",
-        "all", "all_time"
+    private static class TimeframeMapping {
+        String ghFilename;
+        String dbTimeframe;
+        TimeframeMapping(String ghFilename, String dbTimeframe) {
+            this.ghFilename = ghFilename;
+            this.dbTimeframe = dbTimeframe;
+        }
+    }
+
+    private static final List<TimeframeMapping> TIMEFRAMES = List.of(
+        new TimeframeMapping("thirty-days", "30_days"),
+        new TimeframeMapping("three-months", "3_months"),
+        new TimeframeMapping("six-months", "6_months"),
+        new TimeframeMapping("one-year", "1_year"),
+        new TimeframeMapping("all", "all_time")
+    );
+
+    private static final List<String> BASE_URLS = List.of(
+        "https://raw.githubusercontent.com/snehasishroy/leetcode-companywise-interview-questions/master",
+        "https://raw.githubusercontent.com/snehasishroy/leetcode-company-wise-problems/master",
+        "https://raw.githubusercontent.com/krishnadey30/LeetCode-Questions-CompanyWise/master",
+        "https://raw.githubusercontent.com/hxu296/leetcode-company-wise-problems-2022/main"
     );
 
     @Override
     public void run(String... args) throws Exception {
         System.out.println("[PrepIntel Seeder] Starting database auto-seeding...");
 
-        // 1. Create all companies with OA patterns
+        // 1. Create all companies
         for (Map.Entry<String, String> entry : COMPANIES.entrySet()) {
             String slug = entry.getKey();
             String name = entry.getValue();
@@ -172,34 +204,62 @@ public class DatabaseSeeder implements CommandLineRunner {
                         .name(name)
                         .slug(slug)
                         .oaPattern(oaPattern)
+                        .hasLimitedData(false)
                         .build()
                 );
             }
         }
 
-        // 2. Seed from GitHub CSVs (only for companies that have datasets)
-        String[] seededSlugs = {"google", "microsoft", "amazon", "facebook", "apple", "netflix",
-            "atlassian", "autodesk", "adobe", "uber", "bloomberg",
-            "flipkart", "infosys"};
-
-        for (String companySlug : seededSlugs) {
+        // 2. Seed from GitHub CSVs
+        for (String companySlug : COMPANIES.keySet()) {
             Company company = companyRepository.findBySlug(companySlug).orElse(null);
             if (company == null) continue;
 
-            for (Map.Entry<String, String> tf : TIMEFRAME_MAPPINGS.entrySet()) {
-                String ghFilename = tf.getKey();
-                String dbTimeframe = tf.getValue();
+            Set<Integer> seededIds = new HashSet<>();
+            String normalizedSlug = companySlug.toLowerCase();
 
-                String url = String.format(
-                    "https://raw.githubusercontent.com/snehasishroy/leetcode-companywise-interview-questions/master/%s/%s.csv",
-                    companySlug, ghFilename
-                );
-
-                try {
-                    seedFromUrl(company, dbTimeframe, url);
-                } catch (Exception e) {
-                    // 404 or parse failures are expected for missing timeframes
+            for (TimeframeMapping tf : TIMEFRAMES) {
+                if (seededIds.size() >= MAX_PROBLEMS_PER_COMPANY) {
+                    break;
                 }
+
+                String ghFilename = tf.ghFilename;
+                String dbTimeframe = tf.dbTimeframe;
+
+                boolean sourceSuccess = false;
+
+                for (String baseUrl : BASE_URLS) {
+                    if (seededIds.size() >= MAX_PROBLEMS_PER_COMPANY) break;
+
+                    String url1 = String.format("%s/%s/%s.csv", baseUrl, normalizedSlug, ghFilename);
+                    String url2 = String.format("%s/%s_%s.csv", baseUrl, normalizedSlug, ghFilename);
+
+                    try {
+                        seedFromUrl(company, dbTimeframe, url1, seededIds);
+                        sourceSuccess = true;
+                        break; 
+                    } catch (Exception e) {
+                        System.out.println("[PrepIntel Seeder] Source 1 failed for " + company.getName() + " (" + dbTimeframe + "): " + url1);
+                    }
+
+                    if (!sourceSuccess) {
+                        try {
+                            seedFromUrl(company, dbTimeframe, url2, seededIds);
+                            sourceSuccess = true;
+                            break;
+                        } catch (Exception e) {
+                            System.out.println("[PrepIntel Seeder] Source 2 failed for " + company.getName() + " (" + dbTimeframe + "): " + url2);
+                        }
+                    }
+                }
+            }
+
+            if (seededIds.isEmpty()) {
+                company.setHasLimitedData(true);
+                companyRepository.save(company);
+                System.out.println("[PrepIntel Seeder] No data found for " + company.getName() + ". Marked as Limited Data.");
+            } else {
+                System.out.println("[PrepIntel Seeder] Seeded " + seededIds.size() + " problems for " + company.getName());
             }
         }
 
@@ -207,7 +267,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     @Transactional
-    public void seedFromUrl(Company company, String dbTimeframe, String urlString) throws Exception {
+    public void seedFromUrl(Company company, String dbTimeframe, String urlString, Set<Integer> seededIds) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(urlString))
                 .GET()
@@ -221,6 +281,8 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         String[] lines = response.body().split("\n");
         for (int i = 1; i < lines.length; i++) {
+            if (seededIds.size() >= MAX_PROBLEMS_PER_COMPANY) return;
+
             String line = lines[i].trim();
             if (line.isEmpty()) continue;
 
@@ -229,6 +291,8 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             try {
                 Integer leetcodeId = Integer.parseInt(cols[0].trim());
+                if (seededIds.contains(leetcodeId)) continue;
+
                 String problemUrl = cols[1].replace("\"", "").trim();
                 String title = cols[2].replace("\"", "").trim();
                 String difficulty = cols[3].replace("\"", "").trim();
@@ -267,6 +331,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                                     .notes("Imported from LeetCode standard datasets.")
                                     .build()
                     );
+                    seededIds.add(leetcodeId);
                 }
 
             } catch (Exception ex) {

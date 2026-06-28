@@ -51,6 +51,7 @@ public class JobController {
             map.put("name", c.getName());
             map.put("slug", c.getSlug());
             map.put("oaPattern", c.getOaPattern());
+            map.put("hasLimitedData", c.isHasLimitedData());
             map.put("reportCount", countMap.getOrDefault(c.getSlug(), 0L));
             return map;
         }).sorted((a, b) -> Long.compare((Long) b.get("reportCount"), (Long) a.get("reportCount")))

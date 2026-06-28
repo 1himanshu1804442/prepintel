@@ -25,4 +25,8 @@ public class Company {
     @Column(name = "oa_pattern")
     @Builder.Default
     private String oaPattern = "Unknown";
+
+    @Column(name = "has_limited_data")
+    @Builder.Default
+    private boolean hasLimitedData = false;
 }

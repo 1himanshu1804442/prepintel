@@ -8,7 +8,8 @@ CREATE TABLE companies (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     slug VARCHAR(100) NOT NULL UNIQUE,
-    oa_pattern VARCHAR(250) DEFAULT 'Unknown'
+    oa_pattern VARCHAR(250) DEFAULT 'Unknown',
+    has_limited_data BOOLEAN DEFAULT FALSE
 );
 
 -- 2. Problems Table

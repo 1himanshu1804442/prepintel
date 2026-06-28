@@ -257,9 +257,14 @@ export default function App() {
                   className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm transition-all duration-150 hover:bg-surface-700 ${active ? 'bg-surface-700 border-l-2 border-accent text-white' : 'text-gray-400 border-l-2 border-transparent'}`}
                 >
                   <span className="text-base flex-shrink-0">{COMPANY_ICONS[c.slug] || '🏢'}</span>
-                  <div className="min-w-0 flex-1">
-                    <span className="truncate font-medium text-[13px] block">{c.name}</span>
-                    <span className="text-[10px] text-gray-600">{c.reportCount || 0} reports</span>
+                  <div className="min-w-0 flex-1 flex items-center justify-between">
+                    <div className="min-w-0 pr-2">
+                      <span className="truncate font-medium text-[13px] block">{c.name}</span>
+                      <span className="text-[10px] text-gray-600">{c.reportCount || 0} reports</span>
+                    </div>
+                    {c.hasLimitedData && (
+                      <span className="text-[9px] text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20 whitespace-nowrap" title="Limited Data">⚠ Limited</span>
+                    )}
                   </div>
                 </button>
               );
