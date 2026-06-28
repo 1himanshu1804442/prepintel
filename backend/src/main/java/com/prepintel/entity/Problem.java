@@ -35,4 +35,8 @@ public class Problem {
 
     @Column
     private String url;
+
+    @Column
+    @Builder.Default
+    private String topics = "";
 }

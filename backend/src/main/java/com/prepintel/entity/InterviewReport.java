@@ -27,10 +27,14 @@ public class InterviewReport {
     private Problem problem;
 
     @Column(nullable = false)
-    private String source; // 'Reddit', 'User Submission', 'Pre-seeded'
+    private String source;
 
     @Column(nullable = false)
-    private String timeframe; // '30_days', '3_months', '6_months', '1_year', 'all_time'
+    private String timeframe;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String round = "OA";
 
     @Column(name = "date_reported", insertable = false, updatable = false)
     private LocalDateTime dateReported;

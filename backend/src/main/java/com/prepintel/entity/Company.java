@@ -21,4 +21,8 @@ public class Company {
 
     @Column(nullable = false, unique = true)
     private String slug;
+
+    @Column(name = "oa_pattern")
+    @Builder.Default
+    private String oaPattern = "Unknown";
 }

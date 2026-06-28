@@ -7,12 +7,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        darkBg: "#0B0B0F",
-        glassCard: "rgba(17, 17, 24, 0.7)",
-        neonGlow: "#6366F1",
-        neonGreen: "#10B981",
-        borderGlass: "rgba(255, 255, 255, 0.08)"
-      }
+        surface: {
+          900: '#0C0D11',
+          800: '#12131A',
+          700: '#1A1B24',
+          600: '#22232E',
+          500: '#2A2B38',
+        },
+        accent: {
+          DEFAULT: '#6C5CE7',
+          light: '#A29BFE',
+          dim: 'rgba(108, 92, 231, 0.15)',
+        },
+        success: '#00B894',
+        warning: '#FDCB6E',
+        danger: '#E17055',
+        info: '#74B9FF',
+      },
+      fontFamily: {
+        display: ['Outfit', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
     },
   },
   plugins: [],

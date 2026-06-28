@@ -4,62 +4,94 @@
 
 @layer base {
   body {
-    background-color: #111317;
-    background-image: radial-gradient(at 0% 0%, rgba(226, 157, 62, 0.05) 0px, transparent 50%),
-                      radial-gradient(at 100% 0%, rgba(142, 155, 174, 0.03) 0px, transparent 50%);
+    background-color: #0C0D11;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(108, 92, 231, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 100% 50%, rgba(0, 184, 148, 0.04) 0%, transparent 50%);
     background-attachment: fixed;
-    font-family: 'Inter', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(108, 92, 231, 0.2) transparent;
   }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.01);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(108, 92, 231, 0.2);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(226, 157, 62, 0.3);
+  background: rgba(108, 92, 231, 0.4);
 }
 
-/* Glassmorphism Console Panels */
-.glass-card {
-  background: rgba(22, 26, 32, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* Difficulty badge colors */
+.diff-easy { color: #00B894; background: rgba(0, 184, 148, 0.12); }
+.diff-medium { color: #FDCB6E; background: rgba(253, 203, 110, 0.12); }
+.diff-hard { color: #E17055; background: rgba(225, 112, 85, 0.12); }
+
+/* Frequency bar fills */
+.freq-bar-fill {
+  background: linear-gradient(90deg, rgba(108, 92, 231, 0.6), rgba(162, 155, 254, 0.8));
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Glassmorphism panels */
+.glass-panel {
+  background: rgba(18, 19, 26, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-card:hover {
-  border-color: rgba(226, 157, 62, 0.15);
-  box-shadow: 0 0 35px rgba(226, 157, 62, 0.04);
-  transform: translateY(-1px);
+.glass-panel:hover {
+  border-color: rgba(108, 92, 231, 0.12);
 }
 
-.glass-input {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.25s ease-in-out;
+/* Topic bar fills */
+.topic-bar {
+  background: linear-gradient(90deg, rgba(0, 184, 148, 0.5), rgba(0, 184, 148, 0.2));
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.glass-input:focus {
-  background: rgba(0, 0, 0, 0.3);
-  border-color: rgba(226, 157, 62, 0.4);
-  box-shadow: 0 0 15px rgba(226, 157, 62, 0.15);
-  outline: none;
+/* Solved checkbox animation */
+.solved-check {
+  transition: all 0.2s ease;
+}
+
+.solved-check:checked {
+  accent-color: #00B894;
+}
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Subtle pulse for live indicator */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }

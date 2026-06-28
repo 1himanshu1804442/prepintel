@@ -25,4 +25,22 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
     );
 
     List<InterviewReport> findBySourceOrderByDateReportedDesc(String source);
+
+    // Get the latest reports across all sources (for the live feed)
+    List<InterviewReport> findTop20ByOrderByDateReportedDesc();
+
+    // Get count of reports per company
+    @Query("SELECT r.company.slug, COUNT(r) FROM InterviewReport r GROUP BY r.company.slug")
+    List<Object[]> countReportsByCompany();
+
+    // Get difficulty distribution for a company
+    @Query("SELECT r.problem.difficulty, COUNT(DISTINCT r.problem) FROM InterviewReport r " +
+           "WHERE r.company.slug = :companySlug " +
+           "GROUP BY r.problem.difficulty")
+    List<Object[]> getDifficultyDistribution(@Param("companySlug") String companySlug);
+
+    // Get top topics for a company
+    @Query("SELECT r.problem.topics FROM InterviewReport r " +
+           "WHERE r.company.slug = :companySlug AND r.problem.topics IS NOT NULL AND r.problem.topics <> ''")
+    List<String> getTopicsForCompany(@Param("companySlug") String companySlug);
 }

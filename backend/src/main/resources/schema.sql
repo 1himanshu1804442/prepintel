@@ -1,6 +1,5 @@
 -- Drop tables if they exist (for easy re-runs / development)
 DROP TABLE IF EXISTS interview_reports CASCADE;
-DROP TABLE IF EXISTS company_problems CASCADE;
 DROP TABLE IF EXISTS problems CASCADE;
 DROP TABLE IF EXISTS companies CASCADE;
 
@@ -8,7 +7,8 @@ DROP TABLE IF EXISTS companies CASCADE;
 CREATE TABLE companies (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
-    slug VARCHAR(100) NOT NULL UNIQUE
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    oa_pattern VARCHAR(250) DEFAULT 'Unknown'
 );
 
 -- 2. Problems Table
@@ -19,17 +19,18 @@ CREATE TABLE problems (
     title_slug VARCHAR(255) NOT NULL UNIQUE,
     difficulty VARCHAR(20) NOT NULL,
     acceptance_rate DECIMAL(5, 2),
-    url VARCHAR(255)
+    url VARCHAR(255),
+    topics VARCHAR(500) DEFAULT ''
 );
 
--- 3. Interview Reports Table (Junction between Companies and Problems)
--- A report records each instance of a question being asked/reported.
+-- 3. Interview Reports Table
 CREATE TABLE interview_reports (
     id SERIAL PRIMARY KEY,
     company_id INT REFERENCES companies(id) ON DELETE CASCADE,
     problem_id INT REFERENCES problems(id) ON DELETE CASCADE,
-    source VARCHAR(50) NOT NULL, -- 'Reddit', 'User Submission', 'Pre-seeded'
-    timeframe VARCHAR(50) NOT NULL DEFAULT 'all_time', -- '30_days', '3_months', '6_months', '1_year', 'all_time'
+    source VARCHAR(50) NOT NULL,
+    timeframe VARCHAR(50) NOT NULL DEFAULT 'all_time',
+    round VARCHAR(50) NOT NULL DEFAULT 'OA',
     date_reported TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     notes TEXT
 );
@@ -38,3 +39,6 @@ CREATE TABLE interview_reports (
 CREATE INDEX idx_reports_company_id ON interview_reports(company_id);
 CREATE INDEX idx_reports_problem_id ON interview_reports(problem_id);
 CREATE INDEX idx_reports_timeframe ON interview_reports(timeframe);
+CREATE INDEX idx_reports_round ON interview_reports(round);
+CREATE INDEX idx_problems_difficulty ON problems(difficulty);
+CREATE INDEX idx_problems_topics ON problems(topics);
