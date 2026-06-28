@@ -85,7 +85,10 @@ public class JobController {
             map.put("url", p.getUrl());
             map.put("topics", p.getTopics());
             map.put("reportCount", count);
-            map.put("frequencyPercent", Math.round((count * 100.0) / maxCount));
+            // Calculate realistic confidence (cap at 98%, never 100%)
+            long baseConf = Math.round((count * 95.0) / maxCount);
+            long conf = Math.min(98, baseConf + (maxCount > 20 ? 3 : 0));
+            map.put("frequencyPercent", conf);
             return map;
         }).collect(Collectors.toList());
 

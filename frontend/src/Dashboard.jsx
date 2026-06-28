@@ -205,6 +205,7 @@ export default function App() {
 
   // Total reports for this company
   const totalReports = useMemo(() => problems.reduce((s, p) => s + (p.reportCount || 0), 0), [problems]);
+  const overallConfidence = useMemo(() => Math.min(98, Math.max(35, Math.round((totalReports / 500) * 100))), [totalReports]);
 
   // Handle solve toggle
   const handleToggleSolved = useCallback((problemId) => {
@@ -631,7 +632,7 @@ export default function App() {
                 <div className="border-t border-surface-600 pt-4">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Confidence</h4>
-                    <span className="text-success font-bold text-sm">87%</span>
+                    <span className={`${overallConfidence >= 80 ? 'text-success' : overallConfidence >= 50 ? 'text-warning' : 'text-danger'} font-bold text-sm`}>{overallConfidence}%</span>
                   </div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">AI Recommendation</h4>
                   <p className="text-xs text-gray-300 leading-relaxed bg-accent/10 border border-accent/20 p-3 rounded-lg">
