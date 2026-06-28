@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, ChevronRight, ExternalLink, Check, X, Sparkles,
   Calendar, BarChart3, Clock, Filter, ArrowUpDown, TrendingUp,
-  Zap, Target, BookOpen, Flame, ChevronDown, Loader2
+  Zap, Target, BookOpen, Flame, ChevronDown, Loader2, CheckCircle2
 } from 'lucide-react';
 
 const API = 'http://localhost:8080/api';
@@ -46,11 +46,16 @@ function TopicBadge({ topic }) {
   );
 }
 
-// ─── Frequency bar ───
-function FreqBar({ percent }) {
+// ─── Frequency indicator (High/Med/Low + bar) ───
+function FreqIndicator({ percent, count }) {
+  const label = percent >= 70 ? 'High' : percent >= 35 ? 'Med' : 'Low';
+  const labelColor = percent >= 70 ? 'text-danger' : percent >= 35 ? 'text-warning' : 'text-gray-500';
   return (
-    <div className="w-16 h-1.5 bg-surface-600 rounded-full overflow-hidden">
-      <div className="freq-bar-fill h-full rounded-full" style={{ width: `${percent}%` }} />
+    <div className="flex items-center gap-2">
+      <div className="w-12 h-1.5 bg-surface-600 rounded-full overflow-hidden">
+        <div className="freq-bar-fill h-full rounded-full" style={{ width: `${percent}%` }} />
+      </div>
+      <span className={`text-[10px] font-semibold ${labelColor}`}>{label}</span>
     </div>
   );
 }
@@ -59,7 +64,7 @@ function FreqBar({ percent }) {
 function ProgressRing({ percent, size = 36 }) {
   const r = (size - 4) / 2;
   const circ = 2 * Math.PI * r;
-  const offset = circ - (percent / 100) * circ;
+  const offset = circ - (Math.min(percent, 100) / 100) * circ;
   return (
     <svg width={size} height={size} className="transform -rotate-90">
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
@@ -103,11 +108,15 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false);
   const [inspectProblem, setInspectProblem] = useState(null);
   const [loadingProblems, setLoadingProblems] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Fetch companies on mount
   useEffect(() => {
     fetch(`${API}/companies`).then(r => r.json()).then(setCompanies).catch(() => {});
-    fetch(`${API}/reports/latest`).then(r => r.json()).then(setLatestReports).catch(() => {});
+    fetch(`${API}/reports/latest`).then(r => r.json()).then(data => {
+      setLatestReports(data);
+      setLastUpdated(new Date());
+    }).catch(() => {});
   }, []);
 
   // Fetch problems when company changes
@@ -123,6 +132,20 @@ export default function App() {
       setCompanyStats(stats);
       setLoadingProblems(false);
     }).catch(() => setLoadingProblems(false));
+
+    // Auto-fetch AI summary on company select
+    setAiLoading(true);
+    fetch(`${API}/companies/${selectedSlug}/ai-summary`)
+      .then(r => r.json())
+      .then(data => {
+        try { setAiSummary(JSON.parse(data.summary)); }
+        catch { setAiSummary({ recommendation: data.summary }); }
+        setAiLoading(false);
+      })
+      .catch(() => {
+        setAiSummary(null);
+        setAiLoading(false);
+      });
   }, [selectedSlug]);
 
   // Auto-select first company
@@ -152,13 +175,16 @@ export default function App() {
     return list;
   }, [problems, filterDiff, searchQuery, sortBy]);
 
-  // Solved stats for this company
+  // High-confidence problems = top 250 or all if fewer
+  const highConfidenceCount = Math.min(problems.length, 250);
+
+  // Solved stats for this company (against high-confidence set)
   const solvedCount = useMemo(() => {
     if (!selectedSlug) return 0;
-    return problems.filter(p => isSolved(solvedMap, selectedSlug, p.id)).length;
-  }, [problems, solvedMap, selectedSlug]);
+    return problems.slice(0, highConfidenceCount).filter(p => isSolved(solvedMap, selectedSlug, p.id)).length;
+  }, [problems, solvedMap, selectedSlug, highConfidenceCount]);
 
-  const solvedPercent = problems.length > 0 ? Math.round((solvedCount / problems.length) * 100) : 0;
+  const solvedPercent = highConfidenceCount > 0 ? Math.round((solvedCount / highConfidenceCount) * 100) : 0;
 
   // Difficulty distribution
   const diffDist = useMemo(() => {
@@ -166,6 +192,12 @@ export default function App() {
     return { Easy: companyStats.difficulty.Easy || 0, Medium: companyStats.difficulty.Medium || 0, Hard: companyStats.difficulty.Hard || 0 };
   }, [companyStats]);
   const totalDiffProblems = diffDist.Easy + diffDist.Medium + diffDist.Hard || 1;
+  const easyPct = Math.round((diffDist.Easy / totalDiffProblems) * 100);
+  const medPct = Math.round((diffDist.Medium / totalDiffProblems) * 100);
+  const hardPct = Math.round((diffDist.Hard / totalDiffProblems) * 100);
+
+  // Total reports for this company
+  const totalReports = useMemo(() => problems.reduce((s, p) => s + (p.reportCount || 0), 0), [problems]);
 
   // Handle solve toggle
   const handleToggleSolved = useCallback((problemId) => {
@@ -173,26 +205,15 @@ export default function App() {
     setSolvedMap({ ...updated });
   }, [selectedSlug]);
 
-  // Fetch AI Summary
-  const fetchAiSummary = () => {
-    if (!selectedSlug || aiLoading) return;
-    setAiLoading(true);
-    fetch(`${API}/companies/${selectedSlug}/ai-summary`)
-      .then(r => r.json())
-      .then(data => {
-        try { setAiSummary(JSON.parse(data.summary)); }
-        catch { setAiSummary({ recommendation: data.summary }); }
-        setAiLoading(false);
-      })
-      .catch(() => setAiLoading(false));
-  };
-
   // Filtered companies for sidebar
   const filteredCompanies = useMemo(() => {
     if (!companySearch) return companies;
     const q = companySearch.toLowerCase();
     return companies.filter(c => c.name.toLowerCase().includes(q));
   }, [companies, companySearch]);
+
+  // "Updated X ago" for live indicator
+  const updatedAgo = timeAgo(lastUpdated.toISOString());
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -202,12 +223,12 @@ export default function App() {
           <span className="text-xl">🎯</span>
           <h1 className="font-display font-bold text-lg tracking-tight">PrepIntel</h1>
           <span className="text-[11px] text-gray-500 font-mono bg-surface-700 px-2 py-0.5 rounded">
-            {companies.length} companies · {problems.length} questions loaded
+            {companies.length} companies
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="pulse-dot w-2 h-2 rounded-full bg-success" />
-          <span className="text-xs text-gray-500">Live</span>
+          <span className="text-[10px] text-gray-500">Updated {updatedAgo}</span>
         </div>
       </header>
 
@@ -236,8 +257,10 @@ export default function App() {
                   className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm transition-all duration-150 hover:bg-surface-700 ${active ? 'bg-surface-700 border-l-2 border-accent text-white' : 'text-gray-400 border-l-2 border-transparent'}`}
                 >
                   <span className="text-base flex-shrink-0">{COMPANY_ICONS[c.slug] || '🏢'}</span>
-                  <span className="truncate font-medium text-[13px]">{c.name}</span>
-                  <span className="ml-auto text-[10px] font-mono text-gray-600">{c.reportCount || 0}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="truncate font-medium text-[13px] block">{c.name}</span>
+                    <span className="text-[10px] text-gray-600">{c.reportCount || 0} reports</span>
+                  </div>
                 </button>
               );
             })}
@@ -254,7 +277,11 @@ export default function App() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{COMPANY_ICONS[selectedSlug] || '🏢'}</span>
                     <h2 className="font-display font-bold text-2xl text-white">{selectedCompany.name}</h2>
-                    <span className="text-xs text-gray-500 font-mono">{problems.length} questions</span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-1.5">
+                    <span className="text-xs text-gray-500">{problems.length} reported problems</span>
+                    <span className="text-xs text-gray-600">·</span>
+                    <span className="text-xs text-gray-500">{totalReports.toLocaleString()} community reports</span>
                   </div>
                   {selectedCompany.oaPattern && selectedCompany.oaPattern !== 'Unknown' && (
                     <div className="mt-2 flex items-center gap-2">
@@ -263,23 +290,63 @@ export default function App() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={fetchAiSummary}
-                    disabled={aiLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-accent/20 text-accent-light border border-accent/30 rounded-lg text-xs font-medium hover:bg-accent/30 transition-colors disabled:opacity-50"
-                  >
-                    {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                    AI Summary
-                  </button>
-                  <button
-                    onClick={() => setShowPlanModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-success/20 text-success border border-success/30 rounded-lg text-xs font-medium hover:bg-success/30 transition-colors"
-                  >
-                    <Calendar className="w-3.5 h-3.5" />
-                    Generate Study Plan
-                  </button>
+                <button
+                  onClick={() => setShowPlanModal(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-accent-light text-white rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-accent/20"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  Generate Study Plan
+                </button>
+              </div>
+
+              {/* ─── AI Recommendation (always visible) ─── */}
+              <div className="glass-panel rounded-xl p-4 border-l-2 border-accent">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-accent-light" />
+                  <span className="text-xs font-display font-semibold text-white">AI Preparation Insight</span>
                 </div>
+                {aiLoading ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-light" />
+                    <span className="text-xs text-gray-500">Analyzing {selectedCompany.name} interview patterns...</span>
+                  </div>
+                ) : aiSummary ? (
+                  <div className="space-y-2">
+                    {aiSummary.focusAreas && (
+                      <div>
+                        <span className="text-[10px] text-gray-500 uppercase tracking-wider">Focus Areas</span>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {aiSummary.focusAreas.map((a, i) => (
+                            <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent-light border border-accent/20">{a}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {aiSummary.difficultyBreakdown && (
+                      <p className="text-[11px] text-gray-400">
+                        <span className="text-gray-500">Typical difficulty:</span> {aiSummary.difficultyBreakdown}
+                      </p>
+                    )}
+                    {aiSummary.recommendation && (
+                      <p className="text-xs text-gray-300 leading-relaxed">{aiSummary.recommendation}</p>
+                    )}
+                    {aiSummary.estimatedPrepDays && (
+                      <p className="text-[11px] text-gray-500">
+                        Estimated prep: <span className="text-accent-light font-semibold">{aiSummary.estimatedPrepDays} days</span>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-400">
+                      {selectedCompany.name} interviews recently emphasize: <span className="text-gray-300">
+                      {(companyStats?.topTopics || []).slice(0, 3).map(t => t.topic).join(', ') || 'Loading topics...'}</span>
+                    </p>
+                    <p className="text-[11px] text-gray-500">
+                      Average difficulty: <span className="text-warning">{medPct > hardPct ? 'Medium' : 'Medium-Hard'}</span>
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* ─── Stats Row: Progress + Difficulty + Topics ─── */}
@@ -287,11 +354,13 @@ export default function App() {
                 {/* Progress */}
                 <div className="glass-panel rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Your Progress</span>
+                    <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Solved</span>
                     <ProgressRing percent={solvedPercent} />
                   </div>
-                  <div className="text-2xl font-display font-bold text-white">{solvedPercent}%</div>
-                  <div className="text-xs text-gray-500 mt-1">{solvedCount} / {problems.length} solved</div>
+                  <div className="text-2xl font-display font-bold text-white">
+                    {solvedCount} <span className="text-sm text-gray-500 font-normal">/ {highConfidenceCount}</span>
+                  </div>
+                  <div className="text-[11px] text-gray-500 mt-0.5">High-confidence questions · {solvedPercent}%</div>
                   <div className="mt-3 w-full h-1.5 bg-surface-600 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full rounded-full bg-gradient-to-r from-accent to-accent-light"
@@ -305,15 +374,24 @@ export default function App() {
                 {/* Difficulty Distribution */}
                 <div className="glass-panel rounded-xl p-4">
                   <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Difficulty Split</span>
-                  <div className="mt-3 flex items-end gap-1 h-10">
-                    <div className="flex-1 bg-success/30 rounded-sm transition-all" style={{ height: `${(diffDist.Easy / totalDiffProblems) * 100}%`, minHeight: '4px' }} />
-                    <div className="flex-1 bg-warning/30 rounded-sm transition-all" style={{ height: `${(diffDist.Medium / totalDiffProblems) * 100}%`, minHeight: '4px' }} />
-                    <div className="flex-1 bg-danger/30 rounded-sm transition-all" style={{ height: `${(diffDist.Hard / totalDiffProblems) * 100}%`, minHeight: '4px' }} />
+                  <div className="mt-3 w-full h-3 bg-surface-600 rounded-full overflow-hidden flex">
+                    <div className="bg-success/60 h-full transition-all" style={{ width: `${easyPct}%` }} />
+                    <div className="bg-warning/60 h-full transition-all" style={{ width: `${medPct}%` }} />
+                    <div className="bg-danger/60 h-full transition-all" style={{ width: `${hardPct}%` }} />
                   </div>
                   <div className="mt-3 flex justify-between text-[11px]">
-                    <span className="text-success">{diffDist.Easy} Easy</span>
-                    <span className="text-warning">{diffDist.Medium} Med</span>
-                    <span className="text-danger">{diffDist.Hard} Hard</span>
+                    <div className="text-center">
+                      <span className="block text-success font-semibold">{easyPct}%</span>
+                      <span className="text-gray-600">Easy</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="block text-warning font-semibold">{medPct}%</span>
+                      <span className="text-gray-600">Medium</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="block text-danger font-semibold">{hardPct}%</span>
+                      <span className="text-gray-600">Hard</span>
+                    </div>
                   </div>
                 </div>
 
@@ -323,13 +401,16 @@ export default function App() {
                   <div className="mt-2 space-y-1.5">
                     {(companyStats?.topTopics || []).slice(0, 5).map((t, i) => {
                       const maxCount = companyStats?.topTopics?.[0]?.count || 1;
+                      const topicTotal = (companyStats?.topTopics || []).reduce((s, x) => s + x.count, 0) || 1;
+                      const pct = Math.round((t.count / topicTotal) * 100);
                       return (
                         <div key={i} className="flex items-center gap-2 text-[11px]">
-                          <span className="w-20 truncate text-gray-400">{t.topic}</span>
+                          <span className="w-16 truncate text-gray-400">{t.topic}</span>
                           <div className="flex-1 h-1 bg-surface-600 rounded-full overflow-hidden">
                             <div className="topic-bar h-full rounded-full" style={{ width: `${(t.count / maxCount) * 100}%` }} />
                           </div>
-                          <span className="text-gray-600 w-5 text-right font-mono">{t.count}</span>
+                          <span className="text-gray-500 w-6 text-right font-mono text-[10px]">{t.count}</span>
+                          <span className="text-gray-600 w-7 text-right font-mono text-[10px]">{pct}%</span>
                         </div>
                       );
                     })}
@@ -340,53 +421,13 @@ export default function App() {
                 </div>
               </div>
 
-              {/* ─── AI Summary Panel ─── */}
-              <AnimatePresence>
-                {aiSummary && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="glass-panel rounded-xl p-5 border-l-2 border-accent overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-accent-light" />
-                        <span className="text-sm font-display font-semibold text-white">AI Preparation Summary</span>
-                      </div>
-                      <button onClick={() => setAiSummary(null)} className="text-gray-500 hover:text-white">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                    {aiSummary.focusAreas && (
-                      <div className="mb-3">
-                        <span className="text-[11px] text-gray-500 uppercase tracking-wider">Focus Areas</span>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {aiSummary.focusAreas.map((a, i) => (
-                            <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent-light border border-accent/20">{a}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {aiSummary.recommendation && (
-                      <p className="text-xs text-gray-300 leading-relaxed">{aiSummary.recommendation}</p>
-                    )}
-                    {aiSummary.estimatedPrepDays && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        Estimated prep time: <span className="text-accent-light font-semibold">{aiSummary.estimatedPrepDays} days</span>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               {/* ─── Controls: Search + Filter + Sort ─── */}
               <div className="flex items-center gap-3">
                 <div className="relative flex-1 max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                   <input
                     type="text"
-                    placeholder={`Search ${selectedCompany.name} questions...`}
+                    placeholder={`Search by problem or topic...`}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="w-full bg-surface-700 border border-surface-500 rounded-lg pl-9 pr-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:border-accent focus:outline-none transition-colors"
@@ -417,19 +458,23 @@ export default function App() {
                     <option value="acceptance">Acceptance</option>
                   </select>
                 </div>
+
+                <span className="text-[10px] text-gray-600 ml-auto">
+                  {filteredProblems.length} of {problems.length} shown
+                </span>
               </div>
 
               {/* ─── Problem Table ─── */}
               <div className="glass-panel rounded-xl overflow-hidden">
                 {/* Table header */}
-                <div className="grid grid-cols-[32px_1fr_70px_52px_80px_60px_60px] gap-2 px-4 py-2 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
+                <div className="grid grid-cols-[32px_1fr_70px_72px_80px_52px_72px] gap-2 px-4 py-2 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
                   <span></span>
                   <span>Question</span>
                   <span>Difficulty</span>
                   <span>Reports</span>
                   <span>Frequency</span>
                   <span>Accept</span>
-                  <span className="text-center">Solved</span>
+                  <span className="text-center">Status</span>
                 </div>
 
                 {/* Table body */}
@@ -449,8 +494,8 @@ export default function App() {
                           key={p.id}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          transition={{ delay: idx * 0.01 }}
-                          className={`grid grid-cols-[32px_1fr_70px_52px_80px_60px_60px] gap-2 px-4 py-2.5 border-b border-surface-700/50 text-xs items-center hover:bg-surface-700/30 transition-colors group ${solved ? 'opacity-60' : ''}`}
+                          transition={{ delay: Math.min(idx * 0.008, 0.3) }}
+                          className={`grid grid-cols-[32px_1fr_70px_72px_80px_52px_72px] gap-2 px-4 py-2.5 border-b border-surface-700/50 text-xs items-center hover:bg-surface-700/30 transition-colors group ${solved ? 'opacity-50' : ''}`}
                         >
                           {/* LC ID */}
                           <span className="text-gray-600 font-mono text-[11px]">#{p.leetcodeId}</span>
@@ -476,22 +521,26 @@ export default function App() {
                           <DiffBadge diff={p.difficulty} />
 
                           {/* Reports */}
-                          <span className="font-mono text-gray-400">{p.reportCount}×</span>
+                          <span className="font-mono text-gray-400 text-[11px]">{p.reportCount}× reported</span>
 
-                          {/* Frequency bar */}
-                          <FreqBar percent={p.frequencyPercent || 0} />
+                          {/* Frequency */}
+                          <FreqIndicator percent={p.frequencyPercent || 0} count={p.reportCount} />
 
                           {/* Acceptance */}
                           <span className="font-mono text-gray-400">{p.acceptanceRate ? `${Number(p.acceptanceRate).toFixed(0)}%` : '—'}</span>
 
-                          {/* Solved checkbox */}
+                          {/* Solved toggle */}
                           <div className="text-center">
-                            <input
-                              type="checkbox"
-                              checked={solved}
-                              onChange={() => handleToggleSolved(p.id)}
-                              className="solved-check w-4 h-4 rounded border-surface-500 cursor-pointer"
-                            />
+                            <button
+                              onClick={() => handleToggleSolved(p.id)}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${solved
+                                ? 'bg-success/15 text-success border border-success/20'
+                                : 'bg-surface-600 text-gray-500 border border-surface-500 hover:border-gray-400'
+                              }`}
+                            >
+                              {solved ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-gray-500 inline-block" />}
+                              {solved ? 'Solved' : 'Todo'}
+                            </button>
                           </div>
                         </motion.div>
                       );
@@ -508,7 +557,7 @@ export default function App() {
         </main>
 
         {/* ─── Right Sidebar: Latest Reports ─── */}
-        <aside className="w-64 flex-shrink-0 glass-panel border-l border-surface-600 flex flex-col overflow-hidden">
+        <aside className="w-72 flex-shrink-0 glass-panel border-l border-surface-600 flex flex-col overflow-hidden">
           <div className="p-3 border-b border-surface-600 flex items-center gap-2">
             <Flame className="w-4 h-4 text-danger" />
             <span className="text-xs font-display font-semibold text-white">Latest Reports</span>
@@ -522,10 +571,13 @@ export default function App() {
                   <span className="text-[11px] font-semibold text-white">{r.companyName}</span>
                   <span className="ml-auto text-[10px] text-gray-600 font-mono">{timeAgo(r.dateReported)}</span>
                 </div>
-                <p className="text-xs text-gray-300 truncate">{r.problemName}</p>
-                <div className="flex items-center gap-2 mt-1">
+                <p className="text-xs text-gray-300 truncate mb-1.5">{r.problemName}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <DiffBadge diff={r.difficulty || 'Medium'} />
                   <span className="text-[10px] text-gray-500 bg-surface-600 px-1.5 py-0.5 rounded">{r.round || 'OA'}</span>
+                  <span className="text-[10px] text-gray-600 bg-surface-700 px-1.5 py-0.5 rounded">
+                    {r.source === 'Pre-seeded' ? '📊 Dataset' : r.source === 'Reddit' ? '💬 Reddit' : `📝 ${r.source || 'Report'}`}
+                  </span>
                 </div>
               </div>
             ))}
@@ -554,15 +606,17 @@ export default function App() {
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="fixed top-0 right-0 w-[420px] h-full glass-panel border-l border-surface-600 z-50 overflow-y-auto"
             >
-              <div className="p-5 space-y-4">
+              <div className="p-5 space-y-5">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 font-mono text-xs">#{inspectProblem.leetcodeId}</span>
                   <button onClick={() => setInspectProblem(null)} className="text-gray-500 hover:text-white">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
+
                 <h3 className="font-display font-bold text-xl text-white">{inspectProblem.title}</h3>
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-2 flex-wrap">
                   <DiffBadge diff={inspectProblem.difficulty} />
                   <span className="text-xs text-gray-500">Reported {inspectProblem.reportCount}×</span>
                   {inspectProblem.acceptanceRate && (
@@ -584,8 +638,8 @@ export default function App() {
                 <div>
                   <span className="text-[11px] text-gray-500 uppercase tracking-wider">Frequency</span>
                   <div className="mt-1.5 flex items-center gap-3">
-                    <FreqBar percent={inspectProblem.frequencyPercent || 0} />
-                    <span className="text-xs text-gray-400">{inspectProblem.frequencyPercent}% relative frequency</span>
+                    <FreqIndicator percent={inspectProblem.frequencyPercent || 0} count={inspectProblem.reportCount} />
+                    <span className="text-xs text-gray-400">{inspectProblem.frequencyPercent}% relative</span>
                   </div>
                 </div>
 
@@ -599,16 +653,19 @@ export default function App() {
                   Open on LeetCode
                 </a>
 
-                <div className="flex items-center gap-3 pt-2 border-t border-surface-600">
-                  <input
-                    type="checkbox"
-                    checked={isSolved(solvedMap, selectedSlug, inspectProblem.id)}
-                    onChange={() => handleToggleSolved(inspectProblem.id)}
-                    className="solved-check w-5 h-5 cursor-pointer"
-                  />
-                  <span className="text-xs text-gray-400">
-                    {isSolved(solvedMap, selectedSlug, inspectProblem.id) ? 'Solved ✓' : 'Mark as solved'}
-                  </span>
+                <div className="border-t border-surface-600 pt-4">
+                  <button
+                    onClick={() => handleToggleSolved(inspectProblem.id)}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                      isSolved(solvedMap, selectedSlug, inspectProblem.id)
+                        ? 'bg-success/15 text-success border border-success/30'
+                        : 'bg-surface-600 text-gray-400 border border-surface-500 hover:border-accent hover:text-accent-light'
+                    }`}
+                  >
+                    {isSolved(solvedMap, selectedSlug, inspectProblem.id)
+                      ? <><CheckCircle2 className="w-4 h-4" /> Solved ✓</>
+                      : <><span className="w-4 h-4 rounded-full border-2 border-gray-500 inline-block" /> Mark as Solved</>}
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -635,6 +692,7 @@ export default function App() {
 // ═══════════════════════════════════════════
 function StudyPlanModal({ companySlug, companyName, onClose }) {
   const [daysRemaining, setDaysRemaining] = useState(14);
+  const [hoursPerDay, setHoursPerDay] = useState(2);
   const [solvedCount, setSolvedCount] = useState(0);
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -672,7 +730,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
       >
         <div className="p-5 border-b border-surface-600 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-success" />
+            <Calendar className="w-5 h-5 text-accent-light" />
             <h3 className="font-display font-bold text-lg text-white">Generate Study Plan</h3>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
@@ -681,28 +739,40 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
         <div className="p-5 overflow-y-auto max-h-[60vh] space-y-4">
           {!plan ? (
             <>
-              <p className="text-xs text-gray-400">Get a personalized day-by-day study schedule for <span className="text-white font-semibold">{companyName}</span>, powered by AI.</p>
+              <p className="text-xs text-gray-400">Get a personalized day-by-day schedule for <span className="text-white font-semibold">{companyName}</span>, powered by Gemini AI.</p>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[11px] text-gray-500 uppercase tracking-wider mb-1 block">Days Until Interview</label>
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Interview Date</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={daysRemaining}
+                      onChange={e => setDaysRemaining(Number(e.target.value))}
+                      min={1} max={90}
+                      className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">days</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Hours / Day</label>
                   <input
                     type="number"
-                    value={daysRemaining}
-                    onChange={e => setDaysRemaining(Number(e.target.value))}
-                    min={1}
-                    max={90}
-                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
+                    value={hoursPerDay}
+                    onChange={e => setHoursPerDay(Number(e.target.value))}
+                    min={1} max={12}
+                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-gray-500 uppercase tracking-wider mb-1 block">Problems Already Solved</label>
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Already Solved</label>
                   <input
                     type="number"
                     value={solvedCount}
                     onChange={e => setSolvedCount(Number(e.target.value))}
                     min={0}
-                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
+                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
                   />
                 </div>
               </div>
@@ -710,7 +780,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
               <button
                 onClick={generate}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-accent to-accent-light text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-accent to-accent-light text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-accent/20"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {loading ? 'Generating Plan...' : 'Generate My Plan'}
@@ -719,25 +789,25 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
           ) : (
             <div className="space-y-4">
               {plan.strategy && (
-                <div className="glass-panel rounded-xl p-4 border-l-2 border-success">
-                  <span className="text-[11px] text-gray-500 uppercase tracking-wider">Strategy</span>
+                <div className="glass-panel rounded-xl p-4 border-l-2 border-accent">
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wider">Strategy</span>
                   <p className="text-xs text-gray-300 mt-1 leading-relaxed">{plan.strategy}</p>
                 </div>
               )}
 
               {plan.readinessScore && (
-                <div className="flex items-center gap-3">
-                  <ProgressRing percent={plan.readinessScore} size={48} />
+                <div className="flex items-center gap-3 glass-panel rounded-xl p-4">
+                  <ProgressRing percent={plan.readinessScore} size={52} />
                   <div>
-                    <div className="text-lg font-display font-bold text-white">{plan.readinessScore}%</div>
-                    <div className="text-[11px] text-gray-500">Estimated readiness after plan</div>
+                    <div className="text-xl font-display font-bold text-white">{plan.readinessScore}%</div>
+                    <div className="text-[11px] text-gray-500">Estimated readiness after completing this plan</div>
                   </div>
                 </div>
               )}
 
               {plan.topicsToRevise && (
                 <div>
-                  <span className="text-[11px] text-gray-500 uppercase tracking-wider">Topics to Prioritize</span>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wider">Topics to Prioritize</span>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {plan.topicsToRevise.map((t, i) => (
                       <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-success/15 text-success border border-success/20">{t}</span>
@@ -748,19 +818,19 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
 
               {plan.dailyPlan && (
                 <div>
-                  <span className="text-[11px] text-gray-500 uppercase tracking-wider">Daily Schedule</span>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wider">Daily Schedule</span>
                   <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
                     {plan.dailyPlan.map((day, i) => (
                       <div key={i} className="glass-panel rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-semibold text-white">Day {day.day}</span>
-                          <span className="text-[10px] text-gray-500">{day.hours}h</span>
+                          <span className="text-[10px] text-accent-light font-mono">{day.hours || hoursPerDay}h</span>
                         </div>
-                        <p className="text-[11px] text-accent-light mb-1">{day.focus}</p>
+                        <p className="text-[11px] text-gray-400 mb-1.5">{day.focus}</p>
                         {day.problems && (
                           <div className="flex flex-wrap gap-1">
                             {day.problems.map((p, j) => (
-                              <span key={j} className="text-[10px] bg-surface-600 px-1.5 py-0.5 rounded text-gray-400">{p}</span>
+                              <span key={j} className="text-[10px] bg-surface-600 px-1.5 py-0.5 rounded text-gray-300 border border-surface-500">{p}</span>
                             ))}
                           </div>
                         )}
