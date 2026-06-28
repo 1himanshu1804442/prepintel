@@ -11,10 +11,10 @@ import java.util.List;
 @Repository
 public interface InterviewReportRepository extends JpaRepository<InterviewReport, Long> {
 
-    @Query("SELECT r.problem, COUNT(r) FROM InterviewReport r " +
+    @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
            "WHERE r.company.slug = :companySlug AND (:timeframe = 'all_time' OR r.timeframe = :timeframe) " +
            "GROUP BY r.problem " +
-           "ORDER BY COUNT(r) DESC")
+           "ORDER BY SUM(r.reportCount) DESC")
     List<Object[]> findProblemsByCompanyAndTimeframe(
             @Param("companySlug") String companySlug,
             @Param("timeframe") String timeframe
@@ -30,7 +30,7 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
     List<InterviewReport> findTop20ByOrderByDateReportedDesc();
 
     // Get count of reports per company
-    @Query("SELECT r.company.slug, COUNT(r) FROM InterviewReport r GROUP BY r.company.slug")
+    @Query("SELECT r.company.slug, SUM(r.reportCount) FROM InterviewReport r GROUP BY r.company.slug")
     List<Object[]> countReportsByCompany();
 
     // Get difficulty distribution for a company

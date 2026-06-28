@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Random;
 
 @Service
 public class DatabaseSeeder implements CommandLineRunner {
@@ -321,6 +322,14 @@ public class DatabaseSeeder implements CommandLineRunner {
                 );
 
                 if (!exists) {
+                    Random rand = new Random();
+                    int numReports = rand.nextInt(35) + 5; // 5 to 39
+                    if ("30_days".equals(dbTimeframe)) {
+                        numReports = rand.nextInt(40) + 15; // 15 to 54
+                    } else if ("1_year".equals(dbTimeframe)) {
+                        numReports = rand.nextInt(5) + 2; // 2 to 6
+                    }
+
                     reportRepository.save(
                             InterviewReport.builder()
                                     .company(company)
@@ -328,6 +337,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                                     .source("Pre-seeded")
                                     .timeframe(dbTimeframe)
                                     .round("OA")
+                                    .reportCount(numReports)
                                     .notes("Imported from LeetCode standard datasets.")
                                     .build()
                     );

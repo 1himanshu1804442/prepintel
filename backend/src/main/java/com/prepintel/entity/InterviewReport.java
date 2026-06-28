@@ -39,6 +39,10 @@ public class InterviewReport {
     @Column(name = "date_reported", insertable = false, updatable = false)
     private LocalDateTime dateReported;
 
+    @Column(name = "report_count", nullable = false)
+    @Builder.Default
+    private Integer reportCount = 1;
+
     @Column(columnDefinition = "TEXT")
     private String notes;
 }

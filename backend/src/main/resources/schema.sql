@@ -33,6 +33,7 @@ CREATE TABLE interview_reports (
     timeframe VARCHAR(50) NOT NULL DEFAULT 'all_time',
     round VARCHAR(50) NOT NULL DEFAULT 'OA',
     date_reported TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    report_count INT NOT NULL DEFAULT 1,
     notes TEXT
 );
 
