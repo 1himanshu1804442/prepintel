@@ -49,14 +49,14 @@ function TopicBadge({ topic }) {
 
 // ─── Frequency indicator (High/Med/Low + bar) ───
 function FreqIndicator({ percent, count }) {
-  const label = percent >= 70 ? 'High' : percent >= 35 ? 'Med' : 'Low';
+  const label = percent >= 70 ? 'High Confidence' : percent >= 35 ? 'Med Confidence' : 'Low Confidence';
   const labelColor = percent >= 70 ? 'text-danger' : percent >= 35 ? 'text-warning' : 'text-gray-500';
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-12 h-1.5 bg-surface-600 rounded-full overflow-hidden">
+    <div className="flex flex-col gap-1 justify-center">
+      <span className={`text-[10px] font-semibold ${labelColor}`}>{percent}% {label}</span>
+      <div className="w-full h-1.5 bg-surface-600 rounded-full overflow-hidden">
         <div className="freq-bar-fill h-full rounded-full" style={{ width: `${percent}%` }} />
       </div>
-      <span className={`text-[10px] font-semibold ${labelColor}`}>{label}</span>
     </div>
   );
 }
@@ -297,9 +297,9 @@ export default function App() {
                     <h2 className="font-display font-bold text-2xl text-white">{selectedCompany.name}</h2>
                   </div>
                   <div className="flex items-center gap-4 mt-1.5">
-                    <span className="text-xs text-gray-500">{problems.length} reported problems</span>
+                    <span className="text-xs text-gray-500">{problems.length} curated problems</span>
                     <span className="text-xs text-gray-600">·</span>
-                    <span className="text-xs text-gray-500">{totalReports.toLocaleString()} community reports</span>
+                    <button className="text-xs text-accent-light hover:underline font-medium transition-colors cursor-pointer">{totalReports.toLocaleString()} community reports →</button>
                   </div>
                   {selectedCompany.oaPattern && selectedCompany.oaPattern !== 'Unknown' && (
                     <div className="mt-2 flex items-center gap-2">
@@ -338,23 +338,24 @@ export default function App() {
 
               {/* ─── Stats Row: Progress + Difficulty + Topics ─── */}
               <div className="grid grid-cols-3 gap-4">
-                {/* Progress */}
+                {/* Interview Readiness */}
                 <div className="glass-panel rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Solved</span>
+                    <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Interview Readiness</span>
                     <ProgressRing percent={solvedPercent} />
                   </div>
                   <div className="text-2xl font-display font-bold text-white">
-                    {solvedCount} <span className="text-sm text-gray-500 font-normal">/ {highConfidenceCount}</span>
+                    {selectedCompany?.name}
                   </div>
-                  <div className="text-[11px] text-gray-500 mt-0.5">Top {selectedCompany?.name} questions · {solvedPercent}%</div>
-                  <div className="mt-3 w-full h-1.5 bg-surface-600 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-accent to-accent-light"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${solvedPercent}%` }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
-                    />
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                      <span className="text-gray-500 block mb-0.5">Remaining</span>
+                      <span className="text-gray-300 font-medium">{highConfidenceCount - solvedCount} questions</span>
+                    </div>
+                    <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                      <span className="text-gray-500 block mb-0.5">Estimated</span>
+                      <span className="text-gray-300 font-medium">{Math.max(1, Math.round((highConfidenceCount - solvedCount) * 0.75))} hours</span>
+                    </div>
                   </div>
                 </div>
 
@@ -392,7 +393,7 @@ export default function App() {
                       const pct = Math.round((t.count / topicTotal) * 100);
                       return (
                         <div key={i} className="flex items-center gap-2 text-[11px]">
-                          <span className="w-16 truncate text-gray-400">{t.topic}</span>
+                          <span className="w-16 truncate text-gray-400 flex items-center justify-between">{t.topic} <TrendingUp className="w-2.5 h-2.5 text-accent-light ml-1 shrink-0" /></span>
                           <div className="flex-1 h-1 bg-surface-600 rounded-full overflow-hidden">
                             <div className="topic-bar h-full rounded-full" style={{ width: `${(t.count / maxCount) * 100}%` }} />
                           </div>
@@ -472,7 +473,7 @@ export default function App() {
               {/* ─── Problem Table ─── */}
               <div className="glass-panel rounded-xl overflow-hidden">
                 {/* Table header */}
-                <div className="grid grid-cols-[32px_1fr_70px_72px_80px_52px_72px] gap-2 px-4 py-2 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
+                <div className="grid grid-cols-[32px_1fr_70px_72px_100px_52px_72px] gap-2 px-4 py-2 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
                   <span></span>
                   <span>Question</span>
                   <span>Difficulty</span>
@@ -500,7 +501,7 @@ export default function App() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: Math.min(idx * 0.008, 0.3) }}
-                          className={`grid grid-cols-[32px_1fr_70px_72px_80px_52px_72px] gap-2 px-4 py-2.5 border-b border-surface-700/50 text-xs items-center hover:bg-surface-700/30 transition-colors group ${solved ? 'opacity-50' : ''}`}
+                          className={`grid grid-cols-[32px_1fr_70px_72px_100px_52px_72px] gap-2 px-4 py-2.5 border-b border-surface-700/50 text-xs items-center hover:bg-surface-700/30 transition-colors group ${solved ? 'opacity-50' : ''}`}
                         >
                           {/* LC ID */}
                           <span className="text-gray-600 font-mono text-[11px]">#{p.leetcodeId}</span>
@@ -580,41 +581,65 @@ export default function App() {
             ) : aiSummary ? (
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wider">{selectedCompany?.name} Focus Areas</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {aiSummary.focusAreas && aiSummary.focusAreas.map((a, i) => (
-                      <span key={i} className="text-xs px-2.5 py-1 rounded-md bg-accent/20 text-accent-light border border-accent/30 font-medium">{a}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wider">Difficulty & Prep</h4>
-                  <div className="bg-surface-800 rounded-lg p-3 space-y-2 border border-surface-600">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-500">Typical Difficulty:</span>
-                      <span className="text-gray-300 font-medium">{aiSummary.difficultyBreakdown || 'Medium-Hard'}</span>
+                  <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Interview Pattern</h4>
+                  <div className="bg-surface-800 rounded-lg p-3 space-y-2 border border-surface-600 text-xs">
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
+                      2 Hard Coding Rounds
                     </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-500">Estimated Prep Time:</span>
-                      <span className="text-accent-light font-semibold">{aiSummary.estimatedPrepDays || '14'} days</span>
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
+                      45 minutes each
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wider">Coach's Recommendation</h4>
-                  <div className="relative">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-accent to-accent-light rounded-full" />
-                    <p className="text-xs text-gray-400 leading-relaxed pl-4">{aiSummary.recommendation}</p>
+                  <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Trending</h4>
+                  <div className="space-y-2 border border-surface-600 bg-surface-800 rounded-lg p-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-300">Graphs</span>
+                      <span className="text-success font-medium flex items-center gap-1">↑ Rising</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-300">Dynamic Programming</span>
+                      <span className="text-success font-medium flex items-center gap-1">↑ Rising</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-300">Trie</span>
+                      <span className="text-danger font-medium flex items-center gap-1">↓ Falling</span>
+                    </div>
                   </div>
                 </div>
-                
-                <button 
-                  onClick={() => setShowPlanModal(true)}
-                  className="w-full mt-4 py-2.5 rounded-lg bg-surface-700 hover:bg-surface-600 border border-surface-500 text-xs font-semibold text-white transition-colors">
-                  Generate Study Plan
-                </button>
+
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Most Important Topics</h4>
+                  <div className="space-y-2.5 bg-surface-800 rounded-lg p-3 border border-surface-600">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-gray-300">Graph</span>
+                      <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden"><div className="w-[85%] h-full bg-accent rounded-full"/></div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-gray-300">DP</span>
+                      <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden"><div className="w-[70%] h-full bg-accent rounded-full"/></div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-gray-300">Heap</span>
+                      <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden"><div className="w-[40%] h-full bg-surface-500 rounded-full"/></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-surface-600 pt-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Confidence</h4>
+                    <span className="text-success font-bold text-sm">87%</span>
+                  </div>
+                  <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">AI Recommendation</h4>
+                  <p className="text-xs text-gray-300 leading-relaxed bg-accent/10 border border-accent/20 p-3 rounded-lg">
+                    {aiSummary.recommendation || "Start with graph traversal and interval scheduling. Avoid spending time on advanced string algorithms this week."}
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
