@@ -4,94 +4,112 @@
 
 @layer base {
   body {
-    background-color: #0C0D11;
-    background-image: 
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(108, 92, 231, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 100% 50%, rgba(0, 184, 148, 0.04) 0%, transparent 50%);
-    background-attachment: fixed;
+    background-color: #F9F9F6;
+    color: #000000;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(108, 92, 231, 0.2) transparent;
+    scrollbar-color: #000000 transparent;
   }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #F9F9F6;
+  border-left: 1px solid #E5E5E5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(108, 92, 231, 0.2);
-  border-radius: 4px;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(108, 92, 231, 0.4);
+  background: #333333;
 }
 
-/* Difficulty badge colors */
-.diff-easy { color: #00B894; background: rgba(0, 184, 148, 0.12); }
-.diff-medium { color: #FDCB6E; background: rgba(253, 203, 110, 0.12); }
-.diff-hard { color: #E17055; background: rgba(225, 112, 85, 0.12); }
+/* Difficulty badge colors - solid brutalist */
+.diff-easy { color: #027A48; border-color: #027A48; }
+.diff-medium { color: #B54708; border-color: #B54708; }
+.diff-hard { color: #B42318; border-color: #B42318; }
 
 /* Frequency bar fills */
 .freq-bar-fill {
-  background: linear-gradient(90deg, rgba(108, 92, 231, 0.6), rgba(162, 155, 254, 0.8));
-  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  background: #000000;
+  transition: width 0.3s ease;
 }
 
-/* Glassmorphism panels */
+/* Glassmorphism -> Brutalist Solid */
 .glass-panel {
-  background: rgba(18, 19, 26, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: #FFFFFF;
+  border: 1px solid #000000;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
 }
 
 .glass-panel:hover {
-  border-color: rgba(108, 92, 231, 0.12);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
+  transition: all 0.2s ease;
 }
 
 /* Topic bar fills */
 .topic-bar {
-  background: linear-gradient(90deg, rgba(0, 184, 148, 0.5), rgba(0, 184, 148, 0.2));
-  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  background: #000000;
+  border: 1px solid #000000;
 }
 
 /* Solved checkbox animation */
 .solved-check {
-  transition: all 0.2s ease;
+  transition: all 0.1s ease;
+  border-radius: 0 !important;
+  border: 1px solid #000000 !important;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  background-color: #fff;
+  cursor: pointer;
+  position: relative;
 }
 
 .solved-check:checked {
-  accent-color: #00B894;
+  background-color: #000000;
 }
 
-/* Shimmer loading effect */
+.solved-check:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Shimmer loading effect - Brutalist */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
 .shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 75%);
+  background: linear-gradient(90deg, #E5E5E5 25%, #F0F0F0 50%, #E5E5E5 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1s infinite linear;
 }
 
 /* Subtle pulse for live indicator */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0; }
 }
 
 .pulse-dot {
-  animation: pulse-dot 2s ease-in-out infinite;
+  animation: pulse-dot 1.5s step-end infinite;
 }

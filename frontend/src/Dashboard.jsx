@@ -41,7 +41,7 @@ function DiffBadge({ diff }) {
 // ─── Topic badge ───
 function TopicBadge({ topic }) {
   return (
-    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-600 text-gray-400 border border-surface-500">
+    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-700 text-gray-700 border border-black">
       {topic}
     </span>
   );
@@ -54,7 +54,7 @@ function FreqIndicator({ percent, count }) {
   return (
     <div className="flex flex-col gap-1 justify-center">
       <span className={`text-[10px] font-semibold ${labelColor}`}>{percent}% {label}</span>
-      <div className="w-full h-1.5 bg-surface-600 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-surface-700 rounded-full overflow-hidden">
         <div className="freq-bar-fill h-full rounded-full" style={{ width: `${percent}%` }} />
       </div>
     </div>
@@ -247,7 +247,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ─── Top Bar ─── */}
-      <header className="glass-panel border-b border-surface-600 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+      <header className="glass-panel border-b border-black px-6 py-3 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <span className="text-xl">🎯</span>
           <h1 className="font-display font-bold text-lg tracking-tight">PrepIntel</h1>
@@ -256,7 +256,7 @@ export default function App() {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => setShowAboutModal(true)} className="text-[11px] text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors">
+          <button onClick={() => setShowAboutModal(true)} className="text-[11px] text-gray-700 hover:text-black flex items-center gap-1.5 transition-colors">
             <BookOpen className="w-3.5 h-3.5" />
             About
           </button>
@@ -269,8 +269,8 @@ export default function App() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* ─── Sidebar: Company List ─── */}
-        <aside className="w-56 flex-shrink-0 glass-panel border-r border-surface-600 flex flex-col overflow-hidden">
-          <div className="p-3 border-b border-surface-600">
+        <aside className="w-56 flex-shrink-0 glass-panel border-r border-black flex flex-col overflow-hidden">
+          <div className="p-3 border-b border-black">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
               <input
@@ -278,7 +278,7 @@ export default function App() {
                 placeholder="Search companies..."
                 value={companySearch}
                 onChange={e => setCompanySearch(e.target.value)}
-                className="w-full bg-surface-700 border border-surface-500 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:border-accent focus:outline-none transition-colors"
+                className="w-full bg-surface-700 border border-black rounded-none pl-8 pr-3 py-2 text-xs text-black placeholder-gray-500 focus:border-accent focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -289,13 +289,13 @@ export default function App() {
                 <button
                   key={c.slug}
                   onClick={() => { setSelectedSlug(c.slug); setSearchQuery(''); setFilterDiff('All'); }}
-                  className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm transition-all duration-150 hover:bg-surface-700 ${active ? 'bg-surface-700 border-l-2 border-accent text-white' : 'text-gray-400 border-l-2 border-transparent'}`}
+                  className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm transition-all duration-150 hover:bg-surface-700 ${active ? 'bg-surface-700 border-l-2 border-accent text-black' : 'text-gray-700 border-l-2 border-transparent'}`}
                 >
                   <span className="text-base flex-shrink-0">{COMPANY_ICONS[c.slug] || '🏢'}</span>
                   <div className="min-w-0 flex-1 flex items-center justify-between">
                     <div className="min-w-0 pr-2">
                       <span className="truncate font-medium text-[13px] block">{c.name}</span>
-                      <span className="text-[10px] text-gray-600">{c.problemCount || 0} questions</span>
+                      <span className="text-[10px] text-gray-500">{c.problemCount || 0} questions</span>
                     </div>
                     {c.hasLimitedData && (
                       <span className="text-[9px] text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20 whitespace-nowrap" title="Limited Data">⚠ Limited</span>
@@ -316,23 +316,23 @@ export default function App() {
                 <div>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{COMPANY_ICONS[selectedSlug] || '🏢'}</span>
-                    <h2 className="font-display font-bold text-2xl text-white">{selectedCompany.name}</h2>
+                    <h2 className="font-display font-bold text-2xl text-black">{selectedCompany.name}</h2>
                   </div>
                   <div className="flex items-center gap-4 mt-1.5">
                     <span className="text-xs text-gray-500">{problems.length} curated problems</span>
-                    <span className="text-xs text-gray-600">·</span>
-                    <button className="text-xs text-accent-light hover:underline font-medium transition-colors cursor-pointer">{totalReports.toLocaleString()} community reports →</button>
+                    <span className="text-xs text-gray-500">·</span>
+                    <button className="text-xs text-black font-bold uppercase tracking-wider hover:underline font-medium transition-colors cursor-pointer">{totalReports.toLocaleString()} community reports →</button>
                   </div>
                   {selectedCompany.oaPattern && selectedCompany.oaPattern !== 'Unknown' && (
                     <div className="mt-2 flex items-center gap-2">
-                      <Target className="w-3.5 h-3.5 text-accent-light" />
-                      <span className="text-xs text-gray-400">{selectedCompany.oaPattern}</span>
+                      <Target className="w-3.5 h-3.5 text-black font-bold uppercase tracking-wider" />
+                      <span className="text-xs text-gray-700">{selectedCompany.oaPattern}</span>
                     </div>
                   )}
                 </div>
                 <button
                   onClick={() => setShowPlanModal(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-accent-light text-white rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-accent/20"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-black text-white text-black rounded-none text-xs font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-accent/20"
                 >
                   <Calendar className="w-3.5 h-3.5" />
                   Generate Study Plan
@@ -341,16 +341,16 @@ export default function App() {
 
               {/* ─── Empty State Alert ─── */}
               {totalReports < 20 && (
-                <div className="bg-surface-800/80 border border-surface-600 rounded-xl p-4 flex items-start gap-4 shadow-sm mb-6">
+                <div className="bg-white border-2 border-black border border-black rounded-none p-4 flex items-start gap-4 shadow-sm mb-6">
                   <div className="w-10 h-10 rounded-full bg-surface-700 flex items-center justify-center shrink-0">
-                    <Database className="w-5 h-5 text-gray-400" />
+                    <Database className="w-5 h-5 text-gray-700" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-white">Only {totalReports} reports available.</h4>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <h4 className="text-sm font-semibold text-black">Only {totalReports} reports available.</h4>
+                    <p className="text-xs text-gray-700 mt-1">
                       Confidence: <span className="text-danger font-medium">Low</span>. The open-source dataset for {selectedCompany.name} is extremely limited.
                     </p>
-                    <p className="text-xs text-accent-light font-medium mt-2 cursor-pointer hover:underline">
+                    <p className="text-xs text-black font-bold uppercase tracking-wider font-medium mt-2 cursor-pointer hover:underline">
                       Help the community. Submit your interview experience →
                     </p>
                   </div>
@@ -361,30 +361,30 @@ export default function App() {
               {/* ─── Stats Row: Progress + Difficulty + Topics ─── */}
               <div className="grid grid-cols-3 gap-4">
                 {/* Interview Readiness */}
-                <div className="glass-panel rounded-xl p-4">
+                <div className="glass-panel rounded-none p-4">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Interview Readiness</span>
                     <ProgressRing percent={solvedPercent} />
                   </div>
-                  <div className="text-2xl font-display font-bold text-white">
+                  <div className="text-2xl font-display font-bold text-black">
                     {selectedCompany?.name}
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-                    <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                    <div className="bg-white border-2 border-black p-2 rounded border border-black">
                       <span className="text-gray-500 block mb-0.5">Remaining</span>
-                      <span className="text-gray-300 font-medium">{highConfidenceCount - solvedCount} questions</span>
+                      <span className="text-gray-800 font-medium">{highConfidenceCount - solvedCount} questions</span>
                     </div>
-                    <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                    <div className="bg-white border-2 border-black p-2 rounded border border-black">
                       <span className="text-gray-500 block mb-0.5">Estimated</span>
-                      <span className="text-gray-300 font-medium">{Math.max(1, Math.round((highConfidenceCount - solvedCount) * 0.75))} hours</span>
+                      <span className="text-gray-800 font-medium">{Math.max(1, Math.round((highConfidenceCount - solvedCount) * 0.75))} hours</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Difficulty Distribution */}
-                <div className="glass-panel rounded-xl p-4">
+                <div className="glass-panel rounded-none p-4">
                   <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Difficulty Split</span>
-                  <div className="mt-3 w-full h-3 bg-surface-600 rounded-full overflow-hidden flex">
+                  <div className="mt-3 w-full h-3 bg-surface-700 rounded-full overflow-hidden flex">
                     <div className="bg-success/60 h-full transition-all" style={{ width: `${easyPct}%` }} />
                     <div className="bg-warning/60 h-full transition-all" style={{ width: `${medPct}%` }} />
                     <div className="bg-danger/60 h-full transition-all" style={{ width: `${hardPct}%` }} />
@@ -392,21 +392,21 @@ export default function App() {
                   <div className="mt-3 flex justify-between text-[11px]">
                     <div className="text-center">
                       <span className="block text-success font-semibold">{easyPct}%</span>
-                      <span className="text-gray-600">Easy</span>
+                      <span className="text-gray-500">Easy</span>
                     </div>
                     <div className="text-center">
                       <span className="block text-warning font-semibold">{medPct}%</span>
-                      <span className="text-gray-600">Medium</span>
+                      <span className="text-gray-500">Medium</span>
                     </div>
                     <div className="text-center">
                       <span className="block text-danger font-semibold">{hardPct}%</span>
-                      <span className="text-gray-600">Hard</span>
+                      <span className="text-gray-500">Hard</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Top Topics */}
-                <div className="glass-panel rounded-xl p-4">
+                <div className="glass-panel rounded-none p-4">
                   <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Top Topics</span>
                   <div className="mt-2 space-y-1.5">
                     {(companyStats?.topTopics || []).slice(0, 5).map((t, i) => {
@@ -415,17 +415,17 @@ export default function App() {
                       const pct = Math.round((t.count / topicTotal) * 100);
                       return (
                         <div key={i} className="flex items-center gap-2 text-[11px]">
-                          <span className="w-16 truncate text-gray-400 flex items-center justify-between">{t.topic} <TrendingUp className="w-2.5 h-2.5 text-accent-light ml-1 shrink-0" /></span>
-                          <div className="flex-1 h-1 bg-surface-600 rounded-full overflow-hidden">
+                          <span className="w-16 truncate text-gray-700 flex items-center justify-between">{t.topic} <TrendingUp className="w-2.5 h-2.5 text-black font-bold uppercase tracking-wider ml-1 shrink-0" /></span>
+                          <div className="flex-1 h-1 bg-surface-700 rounded-full overflow-hidden">
                             <div className="topic-bar h-full rounded-full" style={{ width: `${(t.count / maxCount) * 100}%` }} />
                           </div>
                           <span className="text-gray-500 w-6 text-right font-mono text-[10px]">{t.count}</span>
-                          <span className="text-gray-600 w-7 text-right font-mono text-[10px]">{pct}%</span>
+                          <span className="text-gray-500 w-7 text-right font-mono text-[10px]">{pct}%</span>
                         </div>
                       );
                     })}
                     {(!companyStats?.topTopics || companyStats.topTopics.length === 0) && (
-                      <p className="text-[11px] text-gray-600 italic">No topic data available</p>
+                      <p className="text-[11px] text-gray-500 italic">No topic data available</p>
                     )}
                   </div>
                 </div>
@@ -440,11 +440,11 @@ export default function App() {
                     placeholder={`Search by problem or topic...`}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full bg-surface-700 border border-surface-500 rounded-lg pl-9 pr-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:border-accent focus:outline-none transition-colors"
+                    className="w-full bg-surface-700 border border-black rounded-none pl-9 pr-3 py-2 text-xs text-black placeholder-gray-500 focus:border-accent focus:outline-none transition-colors"
                   />
                 </div>
 
-                <div className="flex items-center gap-1 bg-surface-700 rounded-lg p-0.5 border border-surface-500">
+                <div className="flex items-center gap-1 bg-surface-700 rounded-none p-0.5 border border-black">
                   {[
                     { label: 'Any', val: 'all_time' },
                     { label: '30d', val: '30_days' },
@@ -455,19 +455,19 @@ export default function App() {
                     <button
                       key={t.val}
                       onClick={() => setTimeframe(t.val)}
-                      className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors ${timeframe === t.val ? 'bg-accent/20 text-accent-light' : 'text-gray-500 hover:text-gray-300'}`}
+                      className={`px-3 py-1.5 text-[11px] font-medium rounded-none transition-colors ${timeframe === t.val ? 'bg-accent/20 text-black font-bold uppercase tracking-wider' : 'text-gray-500 hover:text-gray-800'}`}
                     >
                       {t.label}
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1 bg-surface-700 rounded-lg p-0.5 border border-surface-500">
+                <div className="flex items-center gap-1 bg-surface-700 rounded-none p-0.5 border border-black">
                   {['All', 'Easy', 'Medium', 'Hard'].map(d => (
                     <button
                       key={d}
                       onClick={() => setFilterDiff(d)}
-                      className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors ${filterDiff === d ? 'bg-surface-500 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      className={`px-3 py-1.5 text-[11px] font-medium rounded-none transition-colors ${filterDiff === d ? 'bg-surface-500 text-black' : 'text-gray-500 hover:text-gray-800'}`}
                     >
                       {d}
                     </button>
@@ -479,7 +479,7 @@ export default function App() {
                   <select
                     value={sortBy}
                     onChange={e => setSortBy(e.target.value)}
-                    className="bg-surface-700 border border-surface-500 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-accent cursor-pointer"
+                    className="bg-surface-700 border border-black rounded-none px-2 py-1.5 text-[11px] text-gray-800 focus:outline-none focus:border-accent cursor-pointer"
                   >
                     <option value="frequency">Most Asked</option>
                     <option value="difficulty">Difficulty</option>
@@ -487,15 +487,15 @@ export default function App() {
                   </select>
                 </div>
 
-                <span className="text-[10px] text-gray-600 ml-auto">
+                <span className="text-[10px] text-gray-500 ml-auto">
                   {filteredProblems.length} of {problems.length} shown
                 </span>
               </div>
 
               {/* ─── Problem Table ─── */}
-              <div className="glass-panel rounded-xl overflow-hidden">
+              <div className="glass-panel rounded-none overflow-hidden">
                 {/* Table header */}
-                <div className="grid grid-cols-[32px_1fr_70px_72px_100px_52px_72px] gap-2 px-4 py-2 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
+                <div className="grid grid-cols-[32px_1fr_70px_72px_100px_52px_72px] gap-2 px-4 py-2 border-b border-black text-[10px] text-gray-500 uppercase tracking-wider font-medium">
                   <span></span>
                   <span>Question</span>
                   <span>Difficulty</span>
@@ -509,7 +509,7 @@ export default function App() {
                 <div className="max-h-[480px] overflow-y-auto">
                   {loadingProblems ? (
                     <div className="p-8 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-accent mx-auto mb-2" />
+                      <Loader2 className="w-6 h-6 animate-spin text-black mx-auto mb-2" />
                       <p className="text-xs text-gray-500">Loading questions...</p>
                     </div>
                   ) : filteredProblems.length === 0 ? (
@@ -523,16 +523,16 @@ export default function App() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: Math.min(idx * 0.008, 0.3) }}
-                          className={`grid grid-cols-[32px_1fr_70px_72px_100px_52px_72px] gap-2 px-4 py-2.5 border-b border-surface-700/50 text-xs items-center hover:bg-surface-700/30 transition-colors group ${solved ? 'opacity-50' : ''}`}
+                          className={`grid grid-cols-[32px_1fr_70px_72px_100px_52px_72px] gap-2 px-4 py-2.5 border-b border-black text-xs items-center hover:bg-surface-700 transition-colors group ${solved ? 'opacity-50' : ''}`}
                         >
                           {/* LC ID */}
-                          <span className="text-gray-600 font-mono text-[11px]">#{p.leetcodeId}</span>
+                          <span className="text-gray-500 font-mono text-[11px]">#{p.leetcodeId}</span>
 
                           {/* Title + Topics */}
                           <div className="min-w-0">
                             <button
                               onClick={() => { setInspectProblem(p); setHintText(null); }}
-                              className={`text-left truncate font-medium hover:text-accent-light transition-colors block w-full ${solved ? 'line-through text-gray-500' : 'text-gray-200'}`}
+                              className={`text-left truncate font-medium hover:text-black font-bold uppercase tracking-wider transition-colors block w-full ${solved ? 'line-through text-gray-500' : 'text-black'}`}
                             >
                               {p.title}
                             </button>
@@ -549,21 +549,21 @@ export default function App() {
                           <DiffBadge diff={p.difficulty} />
 
                           {/* Reports */}
-                          <span className="font-mono text-gray-400 text-[11px]">{p.reportCount}× reported</span>
+                          <span className="font-mono text-gray-700 text-[11px]">{p.reportCount}× reported</span>
 
                           {/* Frequency */}
                           <FreqIndicator percent={p.frequencyPercent || 0} count={p.reportCount} />
 
                           {/* Acceptance */}
-                          <span className="font-mono text-gray-400">{p.acceptanceRate ? `${Number(p.acceptanceRate).toFixed(0)}%` : '—'}</span>
+                          <span className="font-mono text-gray-700">{p.acceptanceRate ? `${Number(p.acceptanceRate).toFixed(0)}%` : '—'}</span>
 
                           {/* Solved toggle */}
                           <div className="text-center">
                             <button
                               onClick={() => handleToggleSolved(p.id)}
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${solved
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-none text-[10px] font-medium transition-all ${solved
                                 ? 'bg-success/15 text-success border border-success/20'
-                                : 'bg-surface-600 text-gray-500 border border-surface-500 hover:border-gray-400'
+                                : 'bg-surface-700 text-gray-500 border border-black hover:border-gray-400'
                               }`}
                             >
                               {solved ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-gray-500 inline-block" />}
@@ -579,34 +579,34 @@ export default function App() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center p-12">
-              <div className="w-16 h-16 bg-surface-700 rounded-2xl flex items-center justify-center mb-4">
-                <Search className="w-8 h-8 text-gray-600" />
+              <div className="w-16 h-16 bg-surface-700 rounded-none flex items-center justify-center mb-4">
+                <Search className="w-8 h-8 text-gray-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-300">Select a company</h3>
+              <h3 className="text-lg font-bold text-gray-800">Select a company</h3>
               <p className="text-sm text-gray-500 max-w-xs mt-2">Pick a company from the sidebar to view interview questions, difficulty distribution, and AI insights.</p>
             </div>
           )}
         </main>
 
         {/* ─── Right Sidebar: AI Coach ─── */}
-        <aside className="w-80 flex-shrink-0 glass-panel border-l border-surface-600 flex flex-col">
-          <div className="p-4 border-b border-surface-600 flex items-center gap-2 bg-gradient-to-r from-accent/10 to-transparent">
-            <Sparkles className="w-4 h-4 text-accent-light" />
-            <h3 className="font-display font-bold text-sm text-white">🤖 AI Coach</h3>
+        <aside className="w-80 flex-shrink-0 glass-panel border-l border-black flex flex-col">
+          <div className="p-4 border-b border-black flex items-center gap-2 bg-gradient-to-r bg-surface-700">
+            <Sparkles className="w-4 h-4 text-black font-bold uppercase tracking-wider" />
+            <h3 className="font-display font-bold text-sm text-black">🤖 AI Coach</h3>
           </div>
           <div className="flex-1 overflow-y-auto p-5">
             {aiLoading ? (
               <div className="flex flex-col items-center justify-center h-40 text-center gap-3">
-                <Loader2 className="w-6 h-6 animate-spin text-accent-light" />
+                <Loader2 className="w-6 h-6 animate-spin text-black font-bold uppercase tracking-wider" />
                 <span className="text-xs text-gray-500">Analyzing {selectedCompany?.name} interview patterns...</span>
               </div>
             ) : aiSummary ? (
               <div className="space-y-6">
                 <div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Interview Pattern</h4>
-                  <div className="bg-surface-800 rounded-lg p-3 space-y-2 border border-surface-600 text-xs">
+                  <div className="bg-white border-2 border-black rounded-none p-3 space-y-2 border border-black text-xs">
                     {(aiSummary.interviewPattern || [selectedCompany?.oaPattern || 'Unknown Pattern', '60-90 minutes typically']).map((pattern, i) => (
-                      <div key={i} className="flex items-center gap-2 text-gray-300">
+                      <div key={i} className="flex items-center gap-2 text-gray-800">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent-light" />
                         {pattern}
                       </div>
@@ -616,10 +616,10 @@ export default function App() {
 
                 <div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Trending</h4>
-                  <div className="space-y-2 border border-surface-600 bg-surface-800 rounded-lg p-3">
+                  <div className="space-y-2 border border-black bg-white border-2 border-black rounded-none p-3">
                     {aiSummary.trendingTopics ? aiSummary.trendingTopics.map((t, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-300">{t.topic}</span>
+                        <span className="text-gray-800">{t.topic}</span>
                         <span className={`${(t.trend || '').includes('↑') ? 'text-success' : 'text-danger'} font-medium flex items-center gap-1`}>{t.trend}</span>
                       </div>
                     )) : (
@@ -630,14 +630,14 @@ export default function App() {
 
                 <div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">Most Important Topics</h4>
-                  <div className="space-y-2.5 bg-surface-800 rounded-lg p-3 border border-surface-600">
+                  <div className="space-y-2.5 bg-white border-2 border-black rounded-none p-3 border border-black">
                     {(companyStats?.topTopics || []).slice(0, 3).map((t, i) => {
                        const maxCount = companyStats?.topTopics?.[0]?.count || 1;
                        const pct = Math.round((t.count / maxCount) * 100);
                        const barColor = i === 0 ? 'bg-accent' : i === 1 ? 'bg-accent/80' : 'bg-surface-500';
                        return (
                          <div key={i} className="flex flex-col gap-1">
-                           <span className="text-xs text-gray-300">{t.topic}</span>
+                           <span className="text-xs text-gray-800">{t.topic}</span>
                            <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden">
                              <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
                            </div>
@@ -650,18 +650,18 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="border-t border-surface-600 pt-4">
+                <div className="border-t border-black pt-4">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Confidence</h4>
                     <span className={`${overallConfidence >= 80 ? 'text-success' : overallConfidence >= 50 ? 'text-warning' : 'text-danger'} font-bold text-sm`}>{overallConfidence}%</span>
                   </div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">AI Recommendation</h4>
                   {aiSummary?.error ? (
-                    <div className="bg-danger/10 border border-danger/20 rounded-lg p-3 text-xs text-danger">
+                    <div className="bg-danger/10 border border-danger/20 rounded-none p-3 text-xs text-danger">
                       {aiSummary.error}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-300 leading-relaxed bg-accent/10 border border-accent/20 p-3 rounded-lg">
+                    <p className="text-xs text-gray-800 leading-relaxed bg-accent/10 border border-accent/20 p-3 rounded-none">
                       {aiSummary.recommendation || "Start with graph traversal and interval scheduling. Avoid spending time on advanced string algorithms this week."}
                     </p>
                   )}
@@ -669,13 +669,13 @@ export default function App() {
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-700">
                   {selectedCompany?.name} interviews recently emphasize: 
-                  <span className="text-gray-200 block mt-1 font-medium">
+                  <span className="text-black block mt-1 font-medium">
                     {(companyStats?.topTopics || []).slice(0, 3).map(t => t.topic).join(' • ') || 'Loading topics...'}
                   </span>
                 </p>
-                <div className="bg-surface-800 rounded-lg p-3 border border-surface-600">
+                <div className="bg-white border-2 border-black rounded-none p-3 border border-black">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-500">Average Difficulty:</span>
                     <span className="text-warning font-medium">{medPct > hardPct ? 'Medium' : 'Medium-Hard'}</span>
@@ -684,31 +684,31 @@ export default function App() {
               </div>
             )}
           </div>
-          <div className="p-4 border-t border-surface-600 flex items-center gap-2">
+          <div className="p-4 border-t border-black flex items-center gap-2">
             <Flame className="w-4 h-4 text-danger" />
-            <h3 className="font-display font-bold text-sm text-white">Global Feed</h3>
+            <h3 className="font-display font-bold text-sm text-black">Global Feed</h3>
             <div className="pulse-dot w-1.5 h-1.5 rounded-full bg-danger ml-auto" />
           </div>
           <div className="flex-1 overflow-y-auto">
             {latestReports.map((r, i) => (
-              <div key={r.id || i} className="px-3 py-3 border-b border-surface-700/50 hover:bg-surface-700/30 transition-colors">
+              <div key={r.id || i} className="px-3 py-3 border-b border-black hover:bg-surface-700 transition-colors">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm">{COMPANY_ICONS[r.companySlug] || '🏢'}</span>
-                  <span className="text-[11px] font-semibold text-white">{r.companyName}</span>
-                  <span className="ml-auto text-[10px] text-gray-600 font-mono">{timeAgo(r.dateReported)}</span>
+                  <span className="text-[11px] font-semibold text-black">{r.companyName}</span>
+                  <span className="ml-auto text-[10px] text-gray-500 font-mono">{timeAgo(r.dateReported)}</span>
                 </div>
-                <p className="text-xs text-gray-300 truncate mb-1.5">{r.problemName}</p>
+                <p className="text-xs text-gray-800 truncate mb-1.5">{r.problemName}</p>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <DiffBadge diff={r.difficulty || 'Medium'} />
-                  <span className="text-[10px] text-gray-500 bg-surface-600 px-1.5 py-0.5 rounded">{r.round || 'OA'}</span>
-                  <span className="text-[10px] text-gray-600 bg-surface-700 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] text-gray-500 bg-surface-700 px-1.5 py-0.5 rounded">{r.round || 'OA'}</span>
+                  <span className="text-[10px] text-gray-500 bg-surface-700 px-1.5 py-0.5 rounded">
                     {r.source === 'Pre-seeded' ? '📊 Dataset' : r.source === 'Reddit' ? '💬 Reddit' : `📝 ${r.source || 'Report'}`}
                   </span>
                 </div>
               </div>
             ))}
             {latestReports.length === 0 && (
-              <div className="p-4 text-center text-gray-600 text-xs">No reports yet</div>
+              <div className="p-4 text-center text-gray-500 text-xs">No reports yet</div>
             )}
           </div>
         </aside>
@@ -730,17 +730,17 @@ export default function App() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 w-[420px] h-full glass-panel border-l border-surface-600 z-50 overflow-y-auto"
+              className="fixed top-0 right-0 w-[420px] h-full glass-panel border-l border-black z-50 overflow-y-auto"
             >
               <div className="p-5 space-y-5">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 font-mono text-xs">#{inspectProblem.leetcodeId}</span>
-                  <button onClick={() => setInspectProblem(null)} className="text-gray-500 hover:text-white">
+                  <button onClick={() => setInspectProblem(null)} className="text-gray-500 hover:text-black">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <h3 className="font-display font-bold text-xl text-white">{inspectProblem.title}</h3>
+                <h3 className="font-display font-bold text-xl text-black">{inspectProblem.title}</h3>
 
                 <div className="flex items-center gap-2 flex-wrap">
                   <DiffBadge diff={inspectProblem.difficulty} />
@@ -765,7 +765,7 @@ export default function App() {
                   <span className="text-[11px] text-gray-500 uppercase tracking-wider">Frequency</span>
                   <div className="mt-1.5 flex items-center gap-3">
                     <FreqIndicator percent={inspectProblem.frequencyPercent || 0} count={inspectProblem.reportCount} />
-                    <span className="text-xs text-gray-400">{inspectProblem.frequencyPercent}% relative</span>
+                    <span className="text-xs text-gray-700">{inspectProblem.frequencyPercent}% relative</span>
                   </div>
                 </div>
 
@@ -773,46 +773,46 @@ export default function App() {
                   href={inspectProblem.url || `https://leetcode.com/problems/${inspectProblem.titleSlug}/`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2.5 bg-surface-600 text-gray-300 border border-surface-500 rounded-lg text-xs font-medium hover:bg-surface-500 transition-colors w-full justify-center"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-surface-700 text-gray-800 border border-black rounded-none text-xs font-medium hover:bg-surface-500 transition-colors w-full justify-center"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Open on LeetCode
                 </a>
 
                 {/* AI Hint Section */}
-                <div className="border-t border-surface-600 pt-5">
+                <div className="border-t border-black pt-5">
                   <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-accent" />
-                    <h4 className="text-sm font-semibold text-white">AI Mentor Hint</h4>
+                    <Sparkles className="w-4 h-4 text-black" />
+                    <h4 className="text-sm font-semibold text-black">AI Mentor Hint</h4>
                   </div>
                   
                   {!hintText && !hintLoading ? (
                     <button
                       onClick={() => fetchHint(inspectProblem.id)}
-                      className="w-full py-3 border border-dashed border-accent/40 rounded-lg text-xs font-medium text-accent-light hover:bg-accent/10 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 border border-dashed border-accent/40 rounded-none text-xs font-medium text-black font-bold uppercase tracking-wider hover:bg-accent/10 transition-colors flex items-center justify-center gap-2"
                     >
                       <Zap className="w-3.5 h-3.5" />
                       I'm stuck. Give me a conceptual hint.
                     </button>
                   ) : hintLoading ? (
-                    <div className="bg-surface-700/50 rounded-lg p-4 border border-surface-600 text-center">
-                      <Loader2 className="w-5 h-5 animate-spin text-accent mx-auto mb-2" />
-                      <p className="text-[11px] text-gray-400">Gemini is analyzing this problem...</p>
+                    <div className="bg-surface-700 rounded-none p-4 border border-black text-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-black mx-auto mb-2" />
+                      <p className="text-[11px] text-gray-700">Gemini is analyzing this problem...</p>
                     </div>
                   ) : (
-                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
-                      <p className="text-xs text-gray-200 leading-relaxed whitespace-pre-wrap">{hintText}</p>
+                    <div className="bg-accent/10 border border-accent/20 rounded-none p-4">
+                      <p className="text-xs text-black leading-relaxed whitespace-pre-wrap">{hintText}</p>
                     </div>
                   )}
                 </div>
 
-                <div className="border-t border-surface-600 pt-5">
+                <div className="border-t border-black pt-5">
                   <button
                     onClick={() => handleToggleSolved(inspectProblem.id)}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-xs font-medium transition-all shadow-lg ${
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-none text-xs font-medium transition-all shadow-lg ${
                       isSolved(solvedMap, selectedSlug, inspectProblem.id)
                         ? 'bg-success text-black border border-success'
-                        : 'bg-gradient-to-r from-accent to-accent-light text-white hover:opacity-90'
+                        : 'bg-black text-white text-black hover:opacity-90'
                     }`}
                   >
                     {isSolved(solvedMap, selectedSlug, inspectProblem.id)
@@ -884,20 +884,20 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] max-h-[80vh] glass-panel rounded-2xl border border-surface-500 z-50 overflow-hidden"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] max-h-[80vh] glass-panel rounded-none border border-black z-50 overflow-hidden"
       >
-        <div className="p-5 border-b border-surface-600 flex items-center justify-between">
+        <div className="p-5 border-b border-black flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-accent-light" />
-            <h3 className="font-display font-bold text-lg text-white">Generate Study Plan</h3>
+            <Calendar className="w-5 h-5 text-black font-bold uppercase tracking-wider" />
+            <h3 className="font-display font-bold text-lg text-black">Generate Study Plan</h3>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-gray-500 hover:text-black"><X className="w-5 h-5" /></button>
         </div>
 
         <div className="p-5 overflow-y-auto max-h-[60vh] space-y-4">
           {!plan ? (
             <>
-              <p className="text-xs text-gray-400">Get a personalized day-by-day schedule for <span className="text-white font-semibold">{companyName}</span>, powered by Gemini AI.</p>
+              <p className="text-xs text-gray-700">Get a personalized day-by-day schedule for <span className="text-black font-semibold">{companyName}</span>, powered by Gemini AI.</p>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
@@ -908,7 +908,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
                       value={daysRemaining}
                       onChange={e => setDaysRemaining(Number(e.target.value))}
                       min={1} max={90}
-                      className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
+                      className="w-full bg-surface-700 border border-black rounded-none px-3 py-2.5 text-sm text-black focus:border-accent focus:outline-none"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">days</span>
                   </div>
@@ -920,7 +920,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
                     value={hoursPerDay}
                     onChange={e => setHoursPerDay(Number(e.target.value))}
                     min={1} max={12}
-                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
+                    className="w-full bg-surface-700 border border-black rounded-none px-3 py-2.5 text-sm text-black focus:border-accent focus:outline-none"
                   />
                 </div>
                 <div>
@@ -930,7 +930,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
                     value={solvedCount}
                     onChange={e => setSolvedCount(Number(e.target.value))}
                     min={0}
-                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
+                    className="w-full bg-surface-700 border border-black rounded-none px-3 py-2.5 text-sm text-black focus:border-accent focus:outline-none"
                   />
                 </div>
               </div>
@@ -938,7 +938,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
               <button
                 onClick={generate}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-accent to-accent-light text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-accent/20"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white text-black rounded-none text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-accent/20"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {loading ? 'Generating Plan...' : 'Generate My Plan'}
@@ -947,23 +947,23 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
           ) : (
             <div className="space-y-4">
               {plan.error && (
-                <div className="glass-panel rounded-xl p-4 border-l-2 border-danger bg-danger/10">
+                <div className="glass-panel rounded-none p-4 border-l-2 border-danger bg-danger/10">
                   <span className="text-[10px] text-danger uppercase tracking-wider font-bold">Error</span>
                   <p className="text-xs text-danger mt-1 leading-relaxed">{plan.error}</p>
                 </div>
               )}
               {plan.strategy && (
-                <div className="glass-panel rounded-xl p-4 border-l-2 border-accent">
+                <div className="glass-panel rounded-none p-4 border-l-2 border-accent">
                   <span className="text-[10px] text-gray-500 uppercase tracking-wider">Strategy</span>
-                  <p className="text-xs text-gray-300 mt-1 leading-relaxed">{plan.strategy}</p>
+                  <p className="text-xs text-gray-800 mt-1 leading-relaxed">{plan.strategy}</p>
                 </div>
               )}
 
               {plan.readinessScore && (
-                <div className="flex items-center gap-3 glass-panel rounded-xl p-4">
+                <div className="flex items-center gap-3 glass-panel rounded-none p-4">
                   <ProgressRing percent={plan.readinessScore} size={52} />
                   <div>
-                    <div className="text-xl font-display font-bold text-white">{plan.readinessScore}%</div>
+                    <div className="text-xl font-display font-bold text-black">{plan.readinessScore}%</div>
                     <div className="text-[11px] text-gray-500">Estimated readiness after completing this plan</div>
                   </div>
                 </div>
@@ -985,16 +985,16 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
                   <span className="text-[10px] text-gray-500 uppercase tracking-wider">Daily Schedule</span>
                   <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
                     {plan.dailyPlan.map((day, i) => (
-                      <div key={i} className="glass-panel rounded-lg p-3">
+                      <div key={i} className="glass-panel rounded-none p-3">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-white">Day {day.day}</span>
-                          <span className="text-[10px] text-accent-light font-mono">{day.hours || hoursPerDay}h</span>
+                          <span className="text-xs font-semibold text-black">Day {day.day}</span>
+                          <span className="text-[10px] text-black font-bold uppercase tracking-wider font-mono">{day.hours || hoursPerDay}h</span>
                         </div>
-                        <p className="text-[11px] text-gray-400 mb-1.5">{day.focus}</p>
+                        <p className="text-[11px] text-gray-700 mb-1.5">{day.focus}</p>
                         {day.problems && (
                           <div className="flex flex-wrap gap-1">
                             {day.problems.map((p, j) => (
-                              <span key={j} className="text-[10px] bg-surface-600 px-1.5 py-0.5 rounded text-gray-300 border border-surface-500">{p}</span>
+                              <span key={j} className="text-[10px] bg-surface-700 px-1.5 py-0.5 rounded text-gray-800 border border-black">{p}</span>
                             ))}
                           </div>
                         )}
@@ -1006,7 +1006,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
 
               <button
                 onClick={() => setPlan(null)}
-                className="w-full text-xs text-gray-500 hover:text-white py-2 transition-colors"
+                className="w-full text-xs text-gray-500 hover:text-black py-2 transition-colors"
               >
                 ← Generate another plan
               </button>
@@ -1035,34 +1035,34 @@ function AboutModal({ onClose }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] max-h-[80vh] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] max-h-[80vh] glass-panel rounded-none border border-black z-[60] overflow-hidden"
       >
-        <div className="p-5 border-b border-surface-600 flex items-center justify-between">
+        <div className="p-5 border-b border-black flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-accent-light" />
-            <h3 className="font-display font-bold text-lg text-white">About PrepIntel Pro</h3>
+            <BookOpen className="w-5 h-5 text-black font-bold uppercase tracking-wider" />
+            <h3 className="font-display font-bold text-lg text-black">About PrepIntel Pro</h3>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-gray-500 hover:text-black"><X className="w-5 h-5" /></button>
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[60vh] space-y-5">
-          <p className="text-sm text-gray-300 leading-relaxed">
+          <p className="text-sm text-gray-800 leading-relaxed">
             <strong>PrepIntel Pro</strong> is an AI-powered interview intelligence dashboard. It aggregates thousands of community-reported LeetCode questions across top global tech giants and Indian product companies.
           </p>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Core Features</h4>
-            <ul className="space-y-2 text-xs text-gray-400">
+            <h4 className="text-xs font-semibold text-black uppercase tracking-wider">Core Features</h4>
+            <ul className="space-y-2 text-xs text-gray-700">
               <li className="flex items-start gap-2">
-                <Target className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <Target className="w-4 h-4 text-black shrink-0 mt-0.5" />
                 <span><strong>Curated Datasets:</strong> Questions are intelligently capped to the top 400 most frequently asked and recent questions per company to maximize your ROI.</span>
               </li>
               <li className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <Sparkles className="w-4 h-4 text-black shrink-0 mt-0.5" />
                 <span><strong>Gemini AI Integration:</strong> Instantly get company-specific summaries, difficulty breakdowns, and fully personalized, day-by-day study plans.</span>
               </li>
               <li className="flex items-start gap-2">
-                <BarChart3 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <BarChart3 className="w-4 h-4 text-black shrink-0 mt-0.5" />
                 <span><strong>Advanced Analytics:</strong> Track your progress against a high-confidence set (top 250 problems), visualize difficulty distributions, and analyze top topic trends.</span>
               </li>
               <li className="flex items-start gap-2">
@@ -1072,8 +1072,8 @@ function AboutModal({ onClose }) {
             </ul>
           </div>
 
-          <div className="glass-panel p-4 rounded-xl border border-surface-600 bg-surface-700/50">
-            <p className="text-[11px] text-gray-400">
+          <div className="glass-panel p-4 rounded-none border border-black bg-surface-700">
+            <p className="text-[11px] text-gray-700">
               Data is sourced from popular open-source repositories and dynamically merged. Companies marked with a <span className="text-warning bg-warning/10 px-1 rounded border border-warning/20">⚠ Limited</span> badge have sparse public data available.
             </p>
           </div>
