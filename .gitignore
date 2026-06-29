@@ -6,6 +6,7 @@ target/
 *.class
 *.db
 *.log
+application-secret.properties
 
 # Node/React Ignore
 node_modules/
