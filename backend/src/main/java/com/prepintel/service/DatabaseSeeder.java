@@ -323,11 +323,18 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 if (!exists) {
                     Random rand = new Random();
-                    int numReports = rand.nextInt(35) + 5; // 5 to 39
+                    
+                    // The CSV rows are sorted by frequency (most asked first).
+                    // We generate report counts based on their rank (i) to preserve realistic sorting.
+                    int baseReports = Math.max(1, 100 - (i / 2)); 
+                    int numReports = baseReports + rand.nextInt(Math.max(1, baseReports / 5 + 2)); 
+
                     if ("30_days".equals(dbTimeframe)) {
-                        numReports = rand.nextInt(40) + 15; // 15 to 54
+                        baseReports = Math.max(1, 50 - (i / 3));
+                        numReports = baseReports + rand.nextInt(Math.max(1, baseReports / 4 + 2));
                     } else if ("1_year".equals(dbTimeframe)) {
-                        numReports = rand.nextInt(5) + 2; // 2 to 6
+                        baseReports = Math.max(1, 250 - i);
+                        numReports = baseReports + rand.nextInt(Math.max(1, baseReports / 10 + 2));
                     }
 
                     reportRepository.save(

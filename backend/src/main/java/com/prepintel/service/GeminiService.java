@@ -18,10 +18,16 @@ public class GeminiService {
                 .build();
     }
 
+    @org.springframework.beans.factory.annotation.Value("${gemini.api.key:}")
+    private String propertiesApiKey;
+
     public String generateContent(String prompt) {
         String apiKey = System.getenv("GEMINI_API_KEY");
         if (apiKey == null || apiKey.isBlank()) {
-            return "{\"error\": \"GEMINI_API_KEY not set\"}";
+            apiKey = propertiesApiKey;
+        }
+        if (apiKey == null || apiKey.isBlank()) {
+            return "{\"error\": \"GEMINI_API_KEY not set. Please set it as an environment variable or in application.properties.\"}";
         }
 
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
