@@ -208,7 +208,31 @@ public class JobController {
         return ResponseEntity.ok(result);
     }
 
-    // 6. Generate Personalized Study Plan
+    // 6. Get AI Hint for a Problem
+    @GetMapping("/problems/{id}/hint")
+    public ResponseEntity<Map<String, String>> getProblemHint(@PathVariable Long id) {
+        Problem problem = problemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Problem not found"));
+
+        String prompt = "You are an expert technical interviewer. A student is trying to solve the LeetCode problem: '" 
+                + problem.getTitle() + "' (Difficulty: " + problem.getDifficulty() + ", Topics: " + problem.getTopics() + "). "
+                + "Provide a conceptual, step-by-step hint to guide them towards the optimal solution. "
+                + "DO NOT provide any code. Keep it under 4 sentences. Focus on intuition. "
+                + "Return a JSON response with a single field 'hint' containing your response.";
+
+        String aiResponse = geminiService.generateContent(prompt);
+
+        // Since Gemini returns JSON, it will be a string like {"hint": "..."}
+        // We can just return it as raw string, but it's cleaner to parse it or let the frontend parse it.
+        // Actually, returning a Map will double-stringify if aiResponse is already JSON string.
+        // We will just let the frontend parse the JSON, so we can return it raw or extract it.
+        // Let's just return a Map with the raw aiResponse, and frontend can JSON.parse it if needed.
+        Map<String, String> result = new LinkedHashMap<>();
+        result.put("rawResponse", aiResponse);
+        return ResponseEntity.ok(result);
+    }
+
+    // 7. Generate Personalized Study Plan
     @PostMapping("/companies/{slug}/generate-plan")
     public ResponseEntity<Map<String, String>> generatePlan(
             @PathVariable String slug,

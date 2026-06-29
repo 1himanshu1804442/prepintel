@@ -109,6 +109,8 @@ export default function App() {
   const [aiSummary, setAiSummary] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [inspectProblem, setInspectProblem] = useState(null);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintText, setHintText] = useState(null);
   const [loadingProblems, setLoadingProblems] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -222,6 +224,25 @@ export default function App() {
 
   // "Updated X ago" for live indicator
   const updatedAgo = timeAgo(lastUpdated.toISOString());
+
+  const fetchHint = (problemId) => {
+    setHintLoading(true);
+    fetch(`${API}/problems/${problemId}/hint`)
+      .then(r => r.json())
+      .then(data => {
+        try {
+          const parsed = JSON.parse(data.rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim());
+          setHintText(parsed.hint || parsed.rawResponse || "Could not generate hint.");
+        } catch {
+          setHintText(data.rawResponse || "Could not generate hint.");
+        }
+        setHintLoading(false);
+      })
+      .catch(() => {
+        setHintText("Failed to load AI hint. Please check your connection.");
+        setHintLoading(false);
+      });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -510,7 +531,7 @@ export default function App() {
                           {/* Title + Topics */}
                           <div className="min-w-0">
                             <button
-                              onClick={() => setInspectProblem(p)}
+                              onClick={() => { setInspectProblem(p); setHintText(null); }}
                               className={`text-left truncate font-medium hover:text-accent-light transition-colors block w-full ${solved ? 'line-through text-gray-500' : 'text-gray-200'}`}
                             >
                               {p.title}
@@ -746,24 +767,51 @@ export default function App() {
                   href={inspectProblem.url || `https://leetcode.com/problems/${inspectProblem.titleSlug}/`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2.5 bg-accent/20 text-accent-light border border-accent/30 rounded-lg text-xs font-medium hover:bg-accent/30 transition-colors w-full justify-center"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-surface-600 text-gray-300 border border-surface-500 rounded-lg text-xs font-medium hover:bg-surface-500 transition-colors w-full justify-center"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Open on LeetCode
                 </a>
 
-                <div className="border-t border-surface-600 pt-4">
+                {/* AI Hint Section */}
+                <div className="border-t border-surface-600 pt-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-4 h-4 text-accent" />
+                    <h4 className="text-sm font-semibold text-white">AI Mentor Hint</h4>
+                  </div>
+                  
+                  {!hintText && !hintLoading ? (
+                    <button
+                      onClick={() => fetchHint(inspectProblem.id)}
+                      className="w-full py-3 border border-dashed border-accent/40 rounded-lg text-xs font-medium text-accent-light hover:bg-accent/10 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      I'm stuck. Give me a conceptual hint.
+                    </button>
+                  ) : hintLoading ? (
+                    <div className="bg-surface-700/50 rounded-lg p-4 border border-surface-600 text-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-accent mx-auto mb-2" />
+                      <p className="text-[11px] text-gray-400">Gemini is analyzing this problem...</p>
+                    </div>
+                  ) : (
+                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
+                      <p className="text-xs text-gray-200 leading-relaxed whitespace-pre-wrap">{hintText}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-surface-600 pt-5">
                   <button
                     onClick={() => handleToggleSolved(inspectProblem.id)}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-xs font-medium transition-all shadow-lg ${
                       isSolved(solvedMap, selectedSlug, inspectProblem.id)
-                        ? 'bg-success/15 text-success border border-success/30'
-                        : 'bg-surface-600 text-gray-400 border border-surface-500 hover:border-accent hover:text-accent-light'
+                        ? 'bg-success text-black border border-success'
+                        : 'bg-gradient-to-r from-accent to-accent-light text-white hover:opacity-90'
                     }`}
                   >
                     {isSolved(solvedMap, selectedSlug, inspectProblem.id)
-                      ? <><CheckCircle2 className="w-4 h-4" /> Solved ✓</>
-                      : <><span className="w-4 h-4 rounded-full border-2 border-gray-500 inline-block" /> Mark as Solved</>}
+                      ? <><CheckCircle2 className="w-4 h-4" /> Completed ✓</>
+                      : <><Check className="w-4 h-4" /> Mark as Solved</>}
                   </button>
                 </div>
               </div>
