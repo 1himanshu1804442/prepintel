@@ -656,9 +656,15 @@ export default function App() {
                     <span className={`${overallConfidence >= 80 ? 'text-success' : overallConfidence >= 50 ? 'text-warning' : 'text-danger'} font-bold text-sm`}>{overallConfidence}%</span>
                   </div>
                   <h4 className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wider">AI Recommendation</h4>
-                  <p className="text-xs text-gray-300 leading-relaxed bg-accent/10 border border-accent/20 p-3 rounded-lg">
-                    {aiSummary.recommendation || "Start with graph traversal and interval scheduling. Avoid spending time on advanced string algorithms this week."}
-                  </p>
+                  {aiSummary?.error ? (
+                    <div className="bg-danger/10 border border-danger/20 rounded-lg p-3 text-xs text-danger">
+                      {aiSummary.error}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-300 leading-relaxed bg-accent/10 border border-accent/20 p-3 rounded-lg">
+                      {aiSummary.recommendation || "Start with graph traversal and interval scheduling. Avoid spending time on advanced string algorithms this week."}
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
@@ -940,6 +946,12 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
             </>
           ) : (
             <div className="space-y-4">
+              {plan.error && (
+                <div className="glass-panel rounded-xl p-4 border-l-2 border-danger bg-danger/10">
+                  <span className="text-[10px] text-danger uppercase tracking-wider font-bold">Error</span>
+                  <p className="text-xs text-danger mt-1 leading-relaxed">{plan.error}</p>
+                </div>
+              )}
               {plan.strategy && (
                 <div className="glass-panel rounded-xl p-4 border-l-2 border-accent">
                   <span className="text-[10px] text-gray-500 uppercase tracking-wider">Strategy</span>
