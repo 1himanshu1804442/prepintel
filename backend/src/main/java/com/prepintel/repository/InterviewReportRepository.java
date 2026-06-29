@@ -12,7 +12,13 @@ import java.util.List;
 public interface InterviewReportRepository extends JpaRepository<InterviewReport, Long> {
 
     @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
-           "WHERE r.company.slug = :companySlug AND (:timeframe = 'all_time' OR r.timeframe = :timeframe) " +
+           "WHERE r.company.slug = :companySlug AND (" +
+           "  :timeframe = 'all_time' OR " +
+           "  r.timeframe = :timeframe OR " +
+           "  (:timeframe = '3_months' AND r.timeframe = '30_days') OR " +
+           "  (:timeframe = '6_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months')) OR " +
+           "  (:timeframe = '1_year' AND (r.timeframe = '30_days' OR r.timeframe = '3_months' OR r.timeframe = '6_months'))" +
+           ") " +
            "GROUP BY r.problem " +
            "ORDER BY SUM(r.reportCount) DESC")
     List<Object[]> findProblemsByCompanyAndTimeframe(
@@ -43,4 +49,14 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
     @Query("SELECT r.problem.topics FROM InterviewReport r " +
            "WHERE r.company.slug = :companySlug AND r.problem.topics IS NOT NULL AND r.problem.topics <> ''")
     List<String> getTopicsForCompany(@Param("companySlug") String companySlug);
+
+    // Get global problems sorted by overall frequency
+    @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
+           "GROUP BY r.problem " +
+           "ORDER BY SUM(r.reportCount) DESC")
+    List<Object[]> findGlobalProblemsOrderedByReportCount();
+
+    // Get global difficulty distribution
+    @Query("SELECT r.problem.difficulty, COUNT(DISTINCT r.problem) FROM InterviewReport r GROUP BY r.problem.difficulty")
+    List<Object[]> getGlobalDifficultyDistribution();
 }
