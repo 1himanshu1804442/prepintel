@@ -26,11 +26,30 @@ const setSolved = (data) => localStorage.setItem('prepintel_solved', JSON.string
 const toggleSolved = (companySlug, problemId) => {
   const s = getSolved();
   const key = `${companySlug}:${problemId}`;
-  if (s[key]) delete s[key]; else s[key] = true;
+  const current = s[key];
+  if (!current) {
+    s[key] = 'progress';
+  } else if (current === 'progress') {
+    s[key] = 'solved';
+  } else {
+    delete s[key];
+  }
   setSolved(s);
   return s;
 };
-const isSolved = (solvedMap, companySlug, problemId) => !!solvedMap[`${companySlug}:${problemId}`] || !!solvedMap[`global:${problemId}`];
+const getProblemStatus = (solvedMap, companySlug, problemId) => {
+  if (!solvedMap) return 'todo';
+  const localVal = solvedMap[`${companySlug}:${problemId}`];
+  const globalVal = solvedMap[`global:${problemId}`];
+  if (localVal === 'solved' || localVal === true || globalVal === 'solved' || globalVal === true) {
+    return 'solved';
+  }
+  if (localVal === 'progress' || globalVal === 'progress') {
+    return 'progress';
+  }
+  return 'todo';
+};
+const isSolved = (solvedMap, companySlug, problemId) => getProblemStatus(solvedMap, companySlug, problemId) === 'solved';
 
 // ─── Difficulty badge ───
 function DiffBadge({ diff }) {
@@ -62,17 +81,24 @@ function FreqIndicator({ percent, count }) {
 }
 
 // ─── Progress ring (small) ───
-function ProgressRing({ percent, size = 36 }) {
-  const r = (size - 4) / 2;
+function ProgressRing({ percent, size = 42 }) {
+  const strokeWidth = size >= 52 ? 3.5 : 3;
+  const r = (size - strokeWidth - 1) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (Math.min(percent, 100) / 100) * circ;
+  const fontSizeClass = size >= 52 ? 'text-[11px]' : 'text-[9px]';
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#6C5CE7" strokeWidth="3"
-        strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-        className="transition-all duration-700" />
-    </svg>
+    <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={strokeWidth} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#6C5CE7" strokeWidth={strokeWidth}
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          className="transition-all duration-700" />
+      </svg>
+      <span className={`absolute font-bold font-display text-white ${fontSizeClass}`}>
+        {percent}%
+      </span>
+    </div>
   );
 }
 
@@ -740,18 +766,38 @@ export default function App() {
                           {/* Acceptance */}
                           <span className="font-mono text-gray-400">{p.acceptanceRate ? `${Number(p.acceptanceRate).toFixed(0)}%` : '—'}</span>
 
-                          {/* Solved toggle */}
+                          {/* Solved/Status toggle */}
                           <div className="text-center">
-                            <button
-                              onClick={() => handleToggleSolved(p.id)}
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${solved
-                                ? 'bg-success/15 text-success border border-success/20'
-                                : 'bg-surface-600 text-gray-500 border border-surface-500 hover:border-gray-400'
-                              }`}
-                            >
-                              {solved ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-3 h-3 rounded-full border border-gray-500 inline-block" />}
-                              {solved ? 'Solved' : 'Todo'}
-                            </button>
+                            {(() => {
+                              const status = getProblemStatus(solvedMap, selectedSlug, p.id);
+                              let cls = '';
+                              let icon = null;
+                              let label = '';
+                              
+                              if (status === 'solved') {
+                                cls = 'bg-success/15 text-success border border-success/25 hover:bg-success/25';
+                                icon = <CheckCircle2 className="w-3 h-3" />;
+                                label = 'Solved';
+                              } else if (status === 'progress') {
+                                cls = 'bg-warning/15 text-warning border border-warning/25 hover:bg-warning/25';
+                                icon = <span className="w-3 h-3 text-warning font-mono text-[10px] flex items-center justify-center leading-none">◐</span>;
+                                label = 'Progress';
+                              } else {
+                                cls = 'bg-surface-700/50 text-gray-500 border border-surface-600 hover:border-gray-400 hover:text-gray-300';
+                                icon = <span className="w-2.5 h-2.5 rounded-full border border-gray-500 inline-block" />;
+                                label = 'Todo';
+                              }
+                              
+                              return (
+                                <button
+                                  onClick={() => handleToggleSolved(p.id)}
+                                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold transition-all border w-[72px] justify-center cursor-pointer ${cls}`}
+                                >
+                                  {icon}
+                                  {label}
+                                </button>
+                              );
+                            })()}
                           </div>
                         </motion.div>
                       );
@@ -849,18 +895,29 @@ export default function App() {
                 </a>
 
                 <div className="border-t border-surface-600 pt-5">
-                  <button
-                    onClick={() => handleToggleSolved(inspectProblem.id)}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-xs font-medium transition-all shadow-lg ${
-                      isSolved(solvedMap, selectedSlug, inspectProblem.id)
-                        ? 'bg-success text-black border border-success'
-                        : 'bg-gradient-to-r from-accent to-accent-light text-white hover:opacity-90'
-                    }`}
-                  >
-                    {isSolved(solvedMap, selectedSlug, inspectProblem.id)
-                      ? <><CheckCircle2 className="w-4 h-4" /> Completed ✓</>
-                      : <><Check className="w-4 h-4" /> Mark as Solved</>}
-                  </button>
+                  {(() => {
+                    const status = getProblemStatus(solvedMap, selectedSlug, inspectProblem.id);
+                    return (
+                      <button
+                        onClick={() => handleToggleSolved(inspectProblem.id)}
+                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-xs font-semibold transition-all shadow-lg border cursor-pointer ${
+                          status === 'solved'
+                            ? 'bg-success/10 text-success border-success/30 hover:bg-success/20'
+                            : status === 'progress'
+                            ? 'bg-warning/10 text-warning border-warning/30 hover:bg-warning/20'
+                            : 'bg-surface-700 text-gray-300 border-surface-600 hover:bg-surface-650'
+                        }`}
+                      >
+                        {status === 'solved' ? (
+                          <><CheckCircle2 className="w-4 h-4" /> Solved ✔</>
+                        ) : status === 'progress' ? (
+                          <><span className="font-mono text-sm leading-none mr-0.5">◐</span> In Progress</>
+                        ) : (
+                          <><span className="font-mono text-sm leading-none mr-0.5">○</span> Mark In Progress / Solved</>
+                        )}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </motion.div>
