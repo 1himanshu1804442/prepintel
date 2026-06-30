@@ -1130,6 +1130,7 @@ function SyncProfileModal({ solvedMap, setSolvedMap, onClose }) {
   const [username, setUsername] = useState('');
   const [cfHandle, setCfHandle] = useState('');
   const [repoUrl, setRepoUrl] = useState('');
+  const [pastedIds, setPastedIds] = useState('');
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -1152,6 +1153,23 @@ function SyncProfileModal({ solvedMap, setSolvedMap, onClose }) {
       url = `${API}/sync/github`;
       method = 'POST';
       body = JSON.stringify({ repoUrl });
+    } else if (activeTab === 'paste') {
+      url = `${API}/sync/manual`;
+      method = 'POST';
+      try {
+        let cleanInput = pastedIds.trim();
+        let parsedIds = [];
+        if (cleanInput.startsWith('[') && cleanInput.endsWith(']')) {
+          parsedIds = JSON.parse(cleanInput);
+        } else {
+          parsedIds = cleanInput.split(/[\s,]+/).map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
+        }
+        body = JSON.stringify(parsedIds);
+      } catch (e) {
+        setErrorMsg('Invalid list format. Ensure it is a valid JSON array or list of numbers.');
+        setLoading(false);
+        return;
+      }
     }
 
     const options = {
@@ -1235,7 +1253,8 @@ function SyncProfileModal({ solvedMap, setSolvedMap, onClose }) {
           {[
             { id: 'leetcode', label: 'LeetCode' },
             { id: 'codeforces', label: 'Codeforces' },
-            { id: 'github', label: 'GitHub Repo' }
+            { id: 'github', label: 'GitHub Repo' },
+            { id: 'paste', label: 'Console Paste' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -1291,6 +1310,28 @@ function SyncProfileModal({ solvedMap, setSolvedMap, onClose }) {
                 value={repoUrl}
                 onChange={e => setRepoUrl(e.target.value)}
                 className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
+              />
+            </div>
+          )}
+
+          {activeTab === 'paste' && (
+            <div className="space-y-3">
+              <div className="text-[11px] text-gray-400 leading-relaxed space-y-1 bg-surface-700/50 p-3 rounded-lg border border-surface-600">
+                <p className="font-semibold text-white">How to sync all your problems:</p>
+                <p>1. Open <a href="https://leetcode.com/" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline font-medium">leetcode.com</a> (logged in).</p>
+                <p>2. Open browser console (<kbd className="bg-surface-600 px-1 py-0.5 rounded border border-surface-500">F12</kbd> &rarr; <span className="font-mono text-white">Console</span>).</p>
+                <p>3. Paste the following script and press Enter:</p>
+                <pre className="p-2 bg-surface-800 rounded font-mono text-[9px] text-gray-300 overflow-x-auto select-all cursor-pointer" title="Click to select all">
+                  {`fetch('/api/problems/algorithms/').then(r=>r.json()).then(d=>{const s=d.stat_status_pairs.filter(p=>p.status==='ac').map(p=>p.stat.frontend_question_id);copy(JSON.stringify(s));alert('Copied '+s.length+' solved IDs to clipboard!')});`}
+                </pre>
+                <p>4. Paste the copied IDs into the text area below.</p>
+              </div>
+              <textarea
+                rows={3}
+                placeholder="Paste LeetCode IDs list here (e.g. [1, 2, 206...])"
+                value={pastedIds}
+                onChange={e => setPastedIds(e.target.value)}
+                className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2 text-xs text-white focus:border-accent focus:outline-none font-mono"
               />
             </div>
           )}

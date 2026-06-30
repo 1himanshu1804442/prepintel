@@ -34,6 +34,24 @@ public class SyncController {
         this.objectMapper = new ObjectMapper();
     }
 
+    // 0. Sync manual copy-pasted LeetCode IDs
+    @PostMapping("/manual")
+    public ResponseEntity<?> syncManual(@RequestBody List<Integer> leetcodeIds) {
+        try {
+            if (leetcodeIds == null || leetcodeIds.isEmpty()) {
+                return ResponseEntity.badRequest().body("List of IDs cannot be empty");
+            }
+            List<Problem> matchedProblems = problemRepository.findAll();
+            List<Long> matchedIds = matchedProblems.stream()
+                    .filter(p -> leetcodeIds.contains(p.getLeetcodeId()))
+                    .map(Problem::getId)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(matchedIds);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to process manual sync: " + e.getMessage());
+        }
+    }
+
     // 1. Sync LeetCode Recent Submissions via GraphQL
     @GetMapping("/leetcode")
     public ResponseEntity<?> syncLeetCode(@RequestParam String username) {
