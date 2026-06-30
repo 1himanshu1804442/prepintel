@@ -1097,28 +1097,32 @@ function AboutModal({ onClose }) {
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[60vh] space-y-5">
-          <p className="text-sm text-gray-300 leading-relaxed">
-            <strong>PrepIntel Pro</strong> is an AI-powered interview intelligence dashboard. It aggregates thousands of community-reported LeetCode questions across top global tech giants and Indian product companies.
+          <p className="text-sm text-gray-300 leading-relaxed font-medium">
+            <strong>PrepIntel Pro</strong> is a premium, AI-powered interview intelligence dashboard tailored for college placements. It aggregates thousands of community-reported interview experiences across top global tech giants and Indian service/product companies.
           </p>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Core Features</h4>
-            <ul className="space-y-2 text-xs text-gray-400">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Key Features</h4>
+            <ul className="space-y-3 text-xs text-gray-400">
               <li className="flex items-start gap-2">
                 <Target className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span><strong>Curated Datasets:</strong> Questions are intelligently capped to the top 400 most frequently asked and recent questions per company to maximize your ROI.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span><strong>Gemini AI Integration:</strong> Instantly get company-specific summaries, difficulty breakdowns, and fully personalized, day-by-day study plans.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <BarChart3 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span><strong>Advanced Analytics:</strong> Track your progress against a high-confidence set (top 250 problems), visualize difficulty distributions, and analyze top topic trends.</span>
+                <span><strong>Curated Company Datasets:</strong> Capped to the top 400 most frequently asked and recent questions per company to maximize preparation ROI.</span>
               </li>
               <li className="flex items-start gap-2">
                 <Flame className="w-4 h-4 text-danger shrink-0 mt-0.5" />
-                <span><strong>Live Reports Feed:</strong> Stay updated with the latest interview experiences pulled directly from community discussions and datasets.</span>
+                <span><strong>Smart Revision Mode & Presets:</strong> Toggle revision mode to bubble unsolved questions to the top, or click presets (Top 15, 30, 60) for instant night-before panic prep.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                <span><strong>Contest Elo Ratings:</strong> View actual LeetCode contest rating badges (e.g. <span className="text-warning">★ 1845</span>) inline to understand true objective difficulty.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <RefreshCw className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                <span><strong>Zero-Friction Progress Sync:</strong> Paste your LeetCode username OR securely scrape and import your entire solved history of 400+ questions in 10 seconds via browser Console Paste.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Calendar className="w-4 h-4 text-accent-light shrink-0 mt-0.5" />
+                <span><strong>Auto-Personalized Study Plans:</strong> Instantly generates a day-by-day calendar schedule while automatically filtering out and skipping questions you have already completed.</span>
               </li>
             </ul>
           </div>
