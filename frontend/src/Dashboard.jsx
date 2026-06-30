@@ -112,7 +112,7 @@ export default function App() {
   const [topicSearch, setTopicSearch] = useState('');
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [inspectProblem, setInspectProblem] = useState(null);
-
+  const [presetLimit, setPresetLimit] = useState(null); // null, 15, 30, 60
 
   const [loadingProblems, setLoadingProblems] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -182,6 +182,11 @@ export default function App() {
     }
   }, [sidebarTab, globalStats, selectedTopic]);
 
+  // Reset preset limit on category change
+  useEffect(() => {
+    setPresetLimit(null);
+  }, [selectedSlug, selectedTopic, sidebarTab]);
+
   const selectedCompany = companies.find(c => c.slug === selectedSlug);
 
   // Filter + Sort problems
@@ -210,8 +215,12 @@ export default function App() {
       list.sort((a, b) => order[a.difficulty] - order[b.difficulty]);
     }
     else if (sortBy === 'acceptance') list.sort((a, b) => (b.acceptanceRate || 0) - (a.acceptanceRate || 0));
+
+    if (presetLimit) {
+      list = list.slice(0, presetLimit);
+    }
     return list;
-  }, [problems, filterDiff, searchQuery, sortBy]);
+  }, [problems, filterDiff, searchQuery, sortBy, solvedMap, selectedSlug, presetLimit]);
 
   // High-confidence problems = top 250 or all if fewer
   const highConfidenceCount = Math.min(problems.length, 250);
@@ -512,6 +521,41 @@ export default function App() {
                       <p className="text-[11px] text-gray-600 italic">No topic data available</p>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* ─── Revision Presets Panel ─── */}
+              <div className="glass-panel p-4 rounded-xl border border-surface-600 bg-surface-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent shrink-0">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Interview Tomorrow?</h4>
+                    <p className="text-[11px] text-gray-500 mt-0.5">Filter questions by your remaining prep time. Focus on the highest-yield problems first.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { label: 'Top 15', sub: '2 hrs', val: 15 },
+                    { label: 'Top 30', sub: '1 day', val: 30 },
+                    { label: 'Top 60', sub: '3 days', val: 60 },
+                    { label: 'All Questions', sub: 'Full prep', val: null }
+                  ].map(preset => (
+                    <button
+                      key={preset.label}
+                      onClick={() => setPresetLimit(preset.val)}
+                      className={`px-3 py-1.5 rounded-lg border text-left flex flex-col transition-all cursor-pointer ${
+                        presetLimit === preset.val 
+                          ? 'bg-accent/15 border-accent text-accent-light shadow-md shadow-accent/5' 
+                          : 'bg-surface-700 hover:bg-surface-600 border-surface-500 text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      <span className="text-[11px] font-bold">{preset.label}</span>
+                      <span className="text-[9px] text-gray-500">{preset.sub}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
