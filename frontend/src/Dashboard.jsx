@@ -103,6 +103,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [companySearch, setCompanySearch] = useState('');
   const [sortBy, setSortBy] = useState('frequency');
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
   const [filterDiff, setFilterDiff] = useState('All');
   const [timeframe, setTimeframe] = useState('all_time');
   const [showPlanModal, setShowPlanModal] = useState(false);
@@ -113,6 +114,16 @@ export default function App() {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [inspectProblem, setInspectProblem] = useState(null);
   const [presetLimit, setPresetLimit] = useState(null); // null, 15, 30, 60
+
+  const handleHeaderClick = (field) => {
+    if (sortBy === field) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      // default 'title' to asc, others to desc
+      setSortOrder(field === 'title' ? 'asc' : 'desc');
+    }
+  };
 
   const [loadingProblems, setLoadingProblems] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -205,22 +216,45 @@ export default function App() {
       list.sort((a, b) => {
         const aSolved = isSolved(solvedMap, selectedSlug || 'global', a.id);
         const bSolved = isSolved(solvedMap, selectedSlug || 'global', b.id);
-        if (aSolved !== bSolved) return aSolved ? 1 : -1; // Unsolved first
-        return b.reportCount - a.reportCount; // High frequency first
+        if (aSolved !== bSolved) {
+          const comp = aSolved ? 1 : -1;
+          return sortOrder === 'desc' ? comp : -comp;
+        }
+        const compFreq = b.reportCount - a.reportCount;
+        return sortOrder === 'desc' ? compFreq : -compFreq;
       });
     }
-    else if (sortBy === 'frequency') list.sort((a, b) => b.reportCount - a.reportCount);
+    else if (sortBy === 'frequency') {
+      list.sort((a, b) => {
+        const comp = b.reportCount - a.reportCount;
+        return sortOrder === 'desc' ? comp : -comp;
+      });
+    }
     else if (sortBy === 'difficulty') {
       const order = { Easy: 0, Medium: 1, Hard: 2 };
-      list.sort((a, b) => order[a.difficulty] - order[b.difficulty]);
+      list.sort((a, b) => {
+        const comp = order[a.difficulty] - order[b.difficulty];
+        return sortOrder === 'desc' ? comp : -comp;
+      });
     }
-    else if (sortBy === 'acceptance') list.sort((a, b) => (b.acceptanceRate || 0) - (a.acceptanceRate || 0));
+    else if (sortBy === 'acceptance') {
+      list.sort((a, b) => {
+        const comp = (b.acceptanceRate || 0) - (a.acceptanceRate || 0);
+        return sortOrder === 'desc' ? comp : -comp;
+      });
+    }
+    else if (sortBy === 'title') {
+      list.sort((a, b) => {
+        const comp = a.title.localeCompare(b.title);
+        return sortOrder === 'asc' ? comp : -comp;
+      });
+    }
 
     if (presetLimit) {
       list = list.slice(0, presetLimit);
     }
     return list;
-  }, [problems, filterDiff, searchQuery, sortBy, solvedMap, selectedSlug, presetLimit]);
+  }, [problems, filterDiff, searchQuery, sortBy, sortOrder, solvedMap, selectedSlug, presetLimit]);
 
   // High-confidence problems = top 250 or all if fewer
   const highConfidenceCount = Math.min(problems.length, 250);
@@ -606,13 +640,17 @@ export default function App() {
                   <ArrowUpDown className="w-3 h-3 text-gray-500" />
                   <select
                     value={sortBy}
-                    onChange={e => setSortBy(e.target.value)}
+                    onChange={e => {
+                      setSortBy(e.target.value);
+                      setSortOrder(e.target.value === 'title' ? 'asc' : 'desc');
+                    }}
                     className="bg-surface-700 border border-surface-500 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-accent cursor-pointer"
                   >
-                    <option value="revision">Revision Mode</option>
                     <option value="frequency">Most Asked</option>
+                    <option value="revision">Revision Mode</option>
                     <option value="difficulty">Difficulty</option>
                     <option value="acceptance">Acceptance</option>
+                    <option value="title">Question Name</option>
                   </select>
                 </div>
 
@@ -624,14 +662,39 @@ export default function App() {
               {/* ─── Problem Table ─── */}
               <div className="glass-panel rounded-xl overflow-hidden">
                 {/* Table header */}
-                <div className="grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
+                <div className="grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-semibold items-center select-none">
                   <span></span>
-                  <span>Question</span>
-                  <span>Difficulty</span>
-                  <span className="text-center">Link</span>
-                  <span>Frequency</span>
-                  <span>Accept</span>
-                  <span className="text-center">Status</span>
+                  <button 
+                    onClick={() => handleHeaderClick('title')}
+                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'title' ? 'text-accent-light' : ''}`}
+                  >
+                    Question {sortBy === 'title' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  </button>
+                  <button 
+                    onClick={() => handleHeaderClick('difficulty')}
+                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'difficulty' ? 'text-accent-light' : ''}`}
+                  >
+                    Difficulty {sortBy === 'difficulty' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  </button>
+                  <span className="text-center font-semibold">Link</span>
+                  <button 
+                    onClick={() => handleHeaderClick('frequency')}
+                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'frequency' ? 'text-accent-light' : ''}`}
+                  >
+                    Frequency {sortBy === 'frequency' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  </button>
+                  <button 
+                    onClick={() => handleHeaderClick('acceptance')}
+                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'acceptance' ? 'text-accent-light' : ''}`}
+                  >
+                    Accept {sortBy === 'acceptance' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  </button>
+                  <button 
+                    onClick={() => handleHeaderClick('revision')}
+                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold justify-center focus:outline-none cursor-pointer transition-colors w-full ${sortBy === 'revision' ? 'text-accent-light' : ''}`}
+                  >
+                    Status {sortBy === 'revision' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  </button>
                 </div>
 
                 {/* Table body */}
