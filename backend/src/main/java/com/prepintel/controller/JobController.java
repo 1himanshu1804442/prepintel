@@ -260,6 +260,16 @@ public class JobController {
         int solved = request.getSolvedCount();
         int totalProblems = problems.size();
 
+        // Filter out already solved problems
+        if (request.getSolvedLeetcodeIds() != null && !request.getSolvedLeetcodeIds().isEmpty()) {
+            problems = problems.stream()
+                    .filter(row -> {
+                        Problem p = (Problem) row[0];
+                        return !request.getSolvedLeetcodeIds().contains(p.getLeetcodeId());
+                    })
+                    .collect(Collectors.toList());
+        }
+
         // Separate by difficulty
         List<Object[]> easyProblems = new ArrayList<>();
         List<Object[]> mediumProblems = new ArrayList<>();
@@ -605,5 +615,6 @@ public class JobController {
     public static class GeneratePlanRequest {
         private int daysRemaining;
         private int solvedCount;
+        private List<Integer> solvedLeetcodeIds;
     }
 }

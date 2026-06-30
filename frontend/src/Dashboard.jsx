@@ -831,6 +831,8 @@ export default function App() {
           <StudyPlanModal
             companySlug={selectedSlug}
             companyName={selectedCompany?.name}
+            problems={problems}
+            solvedMap={solvedMap}
             onClose={() => setShowPlanModal(false)}
           />
         )}
@@ -858,20 +860,32 @@ export default function App() {
 // ═══════════════════════════════════════════
 // STUDY PLAN MODAL
 // ═══════════════════════════════════════════
-function StudyPlanModal({ companySlug, companyName, onClose }) {
+function StudyPlanModal({ companySlug, companyName, problems, solvedMap, onClose }) {
   const [daysRemaining, setDaysRemaining] = useState(14);
   const [hoursPerDay, setHoursPerDay] = useState(2);
-  const [solvedCount, setSolvedCount] = useState(0);
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const dragControls = useDragControls();
+
+  const companySolvedIds = useMemo(() => {
+    const slugKey = companySlug || 'global';
+    return (problems || [])
+      .filter(p => isSolved(solvedMap, slugKey, p.id))
+      .map(p => p.leetcodeId);
+  }, [problems, solvedMap, companySlug]);
+
+  const solvedCount = companySolvedIds.length;
 
   const generate = () => {
     setLoading(true);
     fetch(`${API}/companies/${companySlug}/generate-plan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ daysRemaining, solvedCount }),
+      body: JSON.stringify({
+        daysRemaining,
+        solvedCount,
+        solvedLeetcodeIds: companySolvedIds
+      }),
     })
       .then(r => r.json())
       .then(data => {
@@ -916,7 +930,7 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
             <>
               <p className="text-xs text-gray-400">Get a personalized day-by-day schedule for <span className="text-white font-semibold">{companyName}</span>, fully customized to focus areas.</p>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Interview Date</label>
                   <div className="relative">
@@ -932,24 +946,23 @@ function StudyPlanModal({ companySlug, companyName, onClose }) {
                 </div>
                 <div>
                   <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Hours / Day</label>
-                  <input
-                    type="number"
-                    value={hoursPerDay}
-                    onChange={e => setHoursPerDay(Number(e.target.value))}
-                    min={1} max={12}
-                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={hoursPerDay}
+                      onChange={e => setHoursPerDay(Number(e.target.value))}
+                      min={1} max={12}
+                      className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">hours</span>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Already Solved</label>
-                  <input
-                    type="number"
-                    value={solvedCount}
-                    onChange={e => setSolvedCount(Number(e.target.value))}
-                    min={0}
-                    className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
-                  />
-                </div>
+              </div>
+
+              <div className="p-3.5 rounded-lg bg-surface-700/40 border border-surface-600">
+                <p className="text-[11px] text-gray-400 leading-normal">
+                  ⚡ <strong>Auto-Personalization:</strong> We found <span className="text-success font-semibold">{solvedCount} solved questions</span> for {companyName}. They will be skipped automatically to maximize your remaining prep!
+                </p>
               </div>
 
               <button
