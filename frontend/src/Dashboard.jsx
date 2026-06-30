@@ -636,21 +636,26 @@ export default function App() {
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <ArrowUpDown className="w-3 h-3 text-gray-500" />
+                <div className="flex items-center gap-1.5 bg-surface-700 p-1 rounded-lg border border-surface-500">
+                  <button
+                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                    className="p-1 hover:bg-surface-600 rounded text-gray-400 hover:text-white transition-colors cursor-pointer"
+                    title={`Sort direction: ${sortOrder === 'asc' ? 'Ascending' : 'Descending'}. Click to toggle.`}
+                  >
+                    <ArrowUpDown className={`w-3.5 h-3.5 transition-all duration-200 ${sortOrder === 'asc' ? 'text-accent-light rotate-180' : ''}`} />
+                  </button>
                   <select
                     value={sortBy}
                     onChange={e => {
                       setSortBy(e.target.value);
                       setSortOrder(e.target.value === 'title' ? 'asc' : 'desc');
                     }}
-                    className="bg-surface-700 border border-surface-500 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-accent cursor-pointer"
+                    className="bg-transparent text-[11px] text-gray-300 focus:outline-none cursor-pointer pr-1"
                   >
                     <option value="frequency">Most Asked</option>
                     <option value="revision">Revision Mode</option>
                     <option value="difficulty">Difficulty</option>
                     <option value="acceptance">Acceptance</option>
-                    <option value="title">Question Name</option>
                   </select>
                 </div>
 
@@ -662,39 +667,14 @@ export default function App() {
               {/* ─── Problem Table ─── */}
               <div className="glass-panel rounded-xl overflow-hidden">
                 {/* Table header */}
-                <div className="grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-semibold items-center select-none">
+                <div className="grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
                   <span></span>
-                  <button 
-                    onClick={() => handleHeaderClick('title')}
-                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'title' ? 'text-accent-light' : ''}`}
-                  >
-                    Question {sortBy === 'title' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
-                  </button>
-                  <button 
-                    onClick={() => handleHeaderClick('difficulty')}
-                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'difficulty' ? 'text-accent-light' : ''}`}
-                  >
-                    Difficulty {sortBy === 'difficulty' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
-                  </button>
-                  <span className="text-center font-semibold">Link</span>
-                  <button 
-                    onClick={() => handleHeaderClick('frequency')}
-                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'frequency' ? 'text-accent-light' : ''}`}
-                  >
-                    Frequency {sortBy === 'frequency' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
-                  </button>
-                  <button 
-                    onClick={() => handleHeaderClick('acceptance')}
-                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold text-left focus:outline-none cursor-pointer transition-colors ${sortBy === 'acceptance' ? 'text-accent-light' : ''}`}
-                  >
-                    Accept {sortBy === 'acceptance' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
-                  </button>
-                  <button 
-                    onClick={() => handleHeaderClick('revision')}
-                    className={`flex items-center gap-1.5 hover:text-white uppercase font-semibold justify-center focus:outline-none cursor-pointer transition-colors w-full ${sortBy === 'revision' ? 'text-accent-light' : ''}`}
-                  >
-                    Status {sortBy === 'revision' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
-                  </button>
+                  <span>Question</span>
+                  <span>Difficulty</span>
+                  <span className="text-center">Link</span>
+                  <span>Frequency</span>
+                  <span>Accept</span>
+                  <span className="text-center">Status</span>
                 </div>
 
                 {/* Table body */}
