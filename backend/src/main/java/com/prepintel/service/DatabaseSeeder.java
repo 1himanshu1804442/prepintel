@@ -15,6 +15,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -61,7 +63,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         COMPANIES.put("google", "Google");
         COMPANIES.put("microsoft", "Microsoft");
         COMPANIES.put("amazon", "Amazon");
-        COMPANIES.put("facebook", "Meta");
+        COMPANIES.put("meta", "Meta");
         COMPANIES.put("apple", "Apple");
         COMPANIES.put("netflix", "Netflix");
         COMPANIES.put("atlassian", "Atlassian");
@@ -90,7 +92,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         OA_PATTERNS.put("google", "DSA-Heavy OA: 2 Hard Coding (45 min each), Focus on Graphs & DP");
         OA_PATTERNS.put("microsoft", "2 Medium Coding + 1 System Design MCQ, 90 min total");
         OA_PATTERNS.put("amazon", "DSA-Heavy OA: 2 Coding (1 Medium + 1 Hard) + Leadership Principles");
-        OA_PATTERNS.put("facebook", "2 Hard Coding (45 min each), Heavy on Trees & Graphs");
+        OA_PATTERNS.put("meta", "2 Hard Coding (45 min each), Heavy on Trees & Graphs");
         OA_PATTERNS.put("apple", "Phone Screen + 2 Medium-Hard Coding, Focus on Arrays & Strings");
         OA_PATTERNS.put("netflix", "System Design focused, 1 Coding + Architecture Discussion");
         OA_PATTERNS.put("atlassian", "Values-based screening + 2 Medium Coding, Team collaboration focus");
@@ -284,6 +286,13 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         System.out.println("[PrepIntel Seeder] Database auto-seeding completed!");
+
+        // 3. Seed Zerotrac LeetCode Contest Ratings
+        try {
+            seedZerotracRatings();
+        } catch (Exception e) {
+            System.err.println("[PrepIntel Seeder] Failed to seed Zerotrac ratings: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -469,6 +478,57 @@ public class DatabaseSeeder implements CommandLineRunner {
                 }
             }
             seededIds.add(leetcodeId);
+        }
+    }
+
+    private void seedZerotracRatings() {
+        System.out.println("[PrepIntel Seeder] Seeding Zerotrac LeetCode problem ratings...");
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://raw.githubusercontent.com/zerotrac/leetcode_problem_rating/main/data.json"))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                System.err.println("[PrepIntel Seeder] Zerotrac ratings download failed: status " + response.statusCode());
+                return;
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response.body());
+            if (!root.isArray()) {
+                System.err.println("[PrepIntel Seeder] Zerotrac ratings JSON is not an array");
+                return;
+            }
+
+            int count = 0;
+            List<Problem> problemsToUpdate = new ArrayList<>();
+            Map<Integer, Integer> ratingsMap = new LinkedHashMap<>();
+
+            for (JsonNode item : root) {
+                int id = item.path("ID").asInt(0);
+                double rating = item.path("Rating").asDouble(0.0);
+                if (id > 0 && rating > 0.0) {
+                    ratingsMap.put(id, (int) Math.round(rating));
+                }
+            }
+
+            List<Problem> dbProblems = problemRepository.findAll();
+            for (Problem p : dbProblems) {
+                if (ratingsMap.containsKey(p.getLeetcodeId())) {
+                    p.setRating(ratingsMap.get(p.getLeetcodeId()));
+                    problemsToUpdate.add(p);
+                    count++;
+                }
+            }
+
+            if (!problemsToUpdate.isEmpty()) {
+                problemRepository.saveAll(problemsToUpdate);
+                System.out.println("[PrepIntel Seeder] Successfully updated " + count + " LeetCode problem ratings!");
+            }
+        } catch (Exception e) {
+            System.err.println("[PrepIntel Seeder] Error seeding ratings: " + e.getMessage());
         }
     }
 

@@ -11,7 +11,7 @@ const API = 'http://localhost:8080/api';
 
 // Company emoji/color mapping
 const COMPANY_ICONS = {
-  google: '🟨', microsoft: '🟦', amazon: '🟧', facebook: '🔵', apple: '⬜',
+  google: '🟨', microsoft: '🟦', amazon: '🟧', meta: '🔵', apple: '⬜',
   netflix: '🟥', atlassian: '🔷', autodesk: '🟩', adobe: '🔴', uber: '⬛',
   bloomberg: '🟪', flipkart: '🛒', paytm: '💳', meesho: '🩷', cred: '⚪',
   razorpay: '💙', infosys: '🔹', tcs: '🔸', wipro: '🌿', cognizant: '🔶'
@@ -102,7 +102,7 @@ export default function App() {
   const [solvedMap, setSolvedMap] = useState(getSolved());
   const [searchQuery, setSearchQuery] = useState('');
   const [companySearch, setCompanySearch] = useState('');
-  const [sortBy, setSortBy] = useState('frequency');
+  const [sortBy, setSortBy] = useState('revision');
   const [filterDiff, setFilterDiff] = useState('All');
   const [timeframe, setTimeframe] = useState('all_time');
   const [showPlanModal, setShowPlanModal] = useState(false);
@@ -196,7 +196,15 @@ export default function App() {
       list = list.filter(p => p.title.toLowerCase().includes(q) ||
         (p.topics && p.topics.toLowerCase().includes(q)));
     }
-    if (sortBy === 'frequency') list.sort((a, b) => b.reportCount - a.reportCount);
+    if (sortBy === 'revision') {
+      list.sort((a, b) => {
+        const aSolved = isSolved(solvedMap, selectedSlug || 'global', a.id);
+        const bSolved = isSolved(solvedMap, selectedSlug || 'global', b.id);
+        if (aSolved !== bSolved) return aSolved ? 1 : -1; // Unsolved first
+        return b.reportCount - a.reportCount; // High frequency first
+      });
+    }
+    else if (sortBy === 'frequency') list.sort((a, b) => b.reportCount - a.reportCount);
     else if (sortBy === 'difficulty') {
       const order = { Easy: 0, Medium: 1, Hard: 2 };
       list.sort((a, b) => order[a.difficulty] - order[b.difficulty]);
@@ -557,6 +565,7 @@ export default function App() {
                     onChange={e => setSortBy(e.target.value)}
                     className="bg-surface-700 border border-surface-500 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-accent cursor-pointer"
                   >
+                    <option value="revision">Revision Mode</option>
                     <option value="frequency">Most Asked</option>
                     <option value="difficulty">Difficulty</option>
                     <option value="acceptance">Acceptance</option>

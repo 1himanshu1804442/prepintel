@@ -84,6 +84,7 @@ public class JobController {
             map.put("acceptanceRate", p.getAcceptanceRate());
             map.put("url", p.getUrl());
             map.put("topics", p.getTopics());
+            map.put("rating", p.getRating());
             map.put("reportCount", count);
             // Calculate realistic confidence (cap at 98%, never 100%)
             long baseConf = Math.round((count * 95.0) / maxCount);
@@ -519,6 +520,7 @@ public class JobController {
             map.put("acceptanceRate", p.getAcceptanceRate());
             map.put("url", p.getUrl());
             map.put("topics", p.getTopics());
+            map.put("rating", p.getRating());
             map.put("reportCount", count);
             long baseConf = Math.round((count * 95.0) / maxCount);
             long conf = Math.min(98, baseConf + (maxCount > 20 ? 3 : 0));

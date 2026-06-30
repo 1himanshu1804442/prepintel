@@ -1,0 +1,29 @@
+# PREPINTEL FINAL PRE-DEPLOYMENT IMPLEMENTATION PLAN
+
+We are implementing a lightweight Zerotrac Contest Rating seeder and the Revision Mode sorting logic to optimize the experience for placement drives.
+
+## 1. Data Enrichment: Zerotrac Contest Ratings
+* **Goal:** Pull Elo-based contest ratings from the official Zerotrac repository and match them to existing problems by LeetCode ID.
+* **Backend Changes:**
+  - Added `rating` column to `Problem` entity class.
+  - Implemented `seedZerotracRatings()` method in `DatabaseSeeder.java` to fetch `https://raw.githubusercontent.com/zerotrac/leetcode_problem_rating/main/data.json` at startup and populate rating data.
+  - Updated `/api/companies/{slug}/problems` and `/api/problems` in `JobController.java` to include the `rating` attribute in JSON outputs.
+* **Frontend Changes:**
+  - Displayed the Elo rating (e.g. `★ 1845`) inline right under the difficulty badge in the Difficulty column of the main problems table.
+
+## 2. Onboarding Optimization: Revision Mode Sorting
+* **Goal:** Support a zero-decision sort order designed for panicked students reviewing questions at 9 PM.
+* **Sorting Logic:**
+  1. Unsolved + High Frequency (Most Asked) -> Top
+  2. Unsolved + Medium/Low Frequency -> Middle
+  3. Solved (any frequency) -> Bottom, greyed out / line-through
+* **Implementation:**
+  - Added "Revision Mode" to the sorting dropdown in `Dashboard.jsx`.
+  - Configured "Revision Mode" as the default sort state on initial render.
+  - Implemented the custom comparator sorting logic inside the React `filteredProblems` useMemo hook.
+
+## 3. Backlog Backburner (V2 Backlog)
+The following tasks are postponed to maintain a simple, robust initial launch:
+* Deep Codeforces sync parsing.
+* Adding more niche startups (Zomato/Swiggy/OYO) with sparse data.
+* Multi-tab solved filters.

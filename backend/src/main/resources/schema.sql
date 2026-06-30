@@ -21,7 +21,8 @@ CREATE TABLE problems (
     difficulty VARCHAR(20) NOT NULL,
     acceptance_rate DECIMAL(5, 2),
     url VARCHAR(255),
-    topics VARCHAR(500) DEFAULT ''
+    topics VARCHAR(500) DEFAULT '',
+    rating INT
 );
 
 -- 3. Interview Reports Table

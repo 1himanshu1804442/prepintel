@@ -39,4 +39,7 @@ public class Problem {
     @Column
     @Builder.Default
     private String topics = "";
+
+    @Column(name = "rating")
+    private Integer rating;
 }

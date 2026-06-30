@@ -13,11 +13,13 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
 
     @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
            "WHERE r.company.slug = :companySlug AND (" +
-           "  :timeframe = 'all_time' OR " +
-           "  r.timeframe = :timeframe OR " +
-           "  (:timeframe = '3_months' AND r.timeframe = '30_days') OR " +
-           "  (:timeframe = '6_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months')) OR " +
-           "  (:timeframe = '1_year' AND (r.timeframe = '30_days' OR r.timeframe = '3_months' OR r.timeframe = '6_months'))" +
+           "  (:timeframe = 'all_time' AND (r.timeframe = 'all_time' OR NOT EXISTS (SELECT 1 FROM InterviewReport r2 WHERE r2.company.id = r.company.id AND r2.problem.id = r.problem.id AND r2.timeframe = 'all_time'))) OR " +
+           "  (:timeframe <> 'all_time' AND (" +
+           "    r.timeframe = :timeframe OR " +
+           "    (:timeframe = '3_months' AND r.timeframe = '30_days') OR " +
+           "    (:timeframe = '6_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months')) OR " +
+           "    (:timeframe = '1_year' AND (r.timeframe = '30_days' OR r.timeframe = '3_months' OR r.timeframe = '6_months'))" +
+           "  ))" +
            ") " +
            "GROUP BY r.problem " +
            "ORDER BY SUM(r.reportCount) DESC")
@@ -47,11 +49,12 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
 
     // Get top topics for a company
     @Query("SELECT r.problem.topics FROM InterviewReport r " +
-           "WHERE r.company.slug = :companySlug AND r.problem.topics IS NOT NULL AND r.problem.topics <> ''")
+           "WHERE r.company.slug = :companySlug AND r.timeframe = 'all_time' AND r.problem.topics IS NOT NULL AND r.problem.topics <> ''")
     List<String> getTopicsForCompany(@Param("companySlug") String companySlug);
 
     // Get global problems sorted by overall frequency
     @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
+           "WHERE r.timeframe = 'all_time' " +
            "GROUP BY r.problem " +
            "ORDER BY SUM(r.reportCount) DESC")
     List<Object[]> findGlobalProblemsOrderedByReportCount();
