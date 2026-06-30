@@ -102,7 +102,7 @@ export default function App() {
   const [solvedMap, setSolvedMap] = useState(getSolved());
   const [searchQuery, setSearchQuery] = useState('');
   const [companySearch, setCompanySearch] = useState('');
-  const [sortBy, setSortBy] = useState('revision');
+  const [sortBy, setSortBy] = useState('frequency');
   const [filterDiff, setFilterDiff] = useState('All');
   const [timeframe, setTimeframe] = useState('all_time');
   const [showPlanModal, setShowPlanModal] = useState(false);
