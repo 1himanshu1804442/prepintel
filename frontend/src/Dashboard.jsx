@@ -26,30 +26,11 @@ const setSolved = (data) => localStorage.setItem('prepintel_solved', JSON.string
 const toggleSolved = (companySlug, problemId) => {
   const s = getSolved();
   const key = `${companySlug}:${problemId}`;
-  const current = s[key];
-  if (!current) {
-    s[key] = 'progress';
-  } else if (current === 'progress') {
-    s[key] = 'solved';
-  } else {
-    delete s[key];
-  }
+  if (s[key]) delete s[key]; else s[key] = true;
   setSolved(s);
   return s;
 };
-const getProblemStatus = (solvedMap, companySlug, problemId) => {
-  if (!solvedMap) return 'todo';
-  const localVal = solvedMap[`${companySlug}:${problemId}`];
-  const globalVal = solvedMap[`global:${problemId}`];
-  if (localVal === 'solved' || localVal === true || globalVal === 'solved' || globalVal === true) {
-    return 'solved';
-  }
-  if (localVal === 'progress' || globalVal === 'progress') {
-    return 'progress';
-  }
-  return 'todo';
-};
-const isSolved = (solvedMap, companySlug, problemId) => getProblemStatus(solvedMap, companySlug, problemId) === 'solved';
+const isSolved = (solvedMap, companySlug, problemId) => !!solvedMap[`${companySlug}:${problemId}`] || !!solvedMap[`global:${problemId}`];
 
 // ─── Difficulty badge ───
 function DiffBadge({ diff }) {
@@ -766,38 +747,18 @@ export default function App() {
                           {/* Acceptance */}
                           <span className="font-mono text-gray-400">{p.acceptanceRate ? `${Number(p.acceptanceRate).toFixed(0)}%` : '—'}</span>
 
-                          {/* Solved/Status toggle */}
+                          {/* Solved toggle */}
                           <div className="text-center">
-                            {(() => {
-                              const status = getProblemStatus(solvedMap, selectedSlug, p.id);
-                              let cls = '';
-                              let icon = null;
-                              let label = '';
-                              
-                              if (status === 'solved') {
-                                cls = 'bg-success/15 text-success border border-success/25 hover:bg-success/25';
-                                icon = <CheckCircle2 className="w-3 h-3" />;
-                                label = 'Solved';
-                              } else if (status === 'progress') {
-                                cls = 'bg-warning/15 text-warning border border-warning/25 hover:bg-warning/25';
-                                icon = <span className="w-3 h-3 text-warning font-mono text-[10px] flex items-center justify-center leading-none">◐</span>;
-                                label = 'Progress';
-                              } else {
-                                cls = 'bg-surface-700/50 text-gray-500 border border-surface-600 hover:border-gray-400 hover:text-gray-300';
-                                icon = <span className="w-2.5 h-2.5 rounded-full border border-gray-500 inline-block" />;
-                                label = 'Todo';
-                              }
-                              
-                              return (
-                                <button
-                                  onClick={() => handleToggleSolved(p.id)}
-                                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold transition-all border w-[72px] justify-center cursor-pointer ${cls}`}
-                                >
-                                  {icon}
-                                  {label}
-                                </button>
-                              );
-                            })()}
+                            <button
+                              onClick={() => handleToggleSolved(p.id)}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all border cursor-pointer ${solved
+                                ? 'bg-success/15 text-success border-success/25 hover:bg-success/25'
+                                : 'bg-surface-700/50 text-gray-500 border border-surface-600 hover:border-gray-400 hover:text-gray-300'
+                              }`}
+                            >
+                              {solved ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-2.5 h-2.5 rounded-full border border-gray-500 inline-block" />}
+                              {solved ? 'Solved' : 'Todo'}
+                            </button>
                           </div>
                         </motion.div>
                       );
@@ -895,29 +856,18 @@ export default function App() {
                 </a>
 
                 <div className="border-t border-surface-600 pt-5">
-                  {(() => {
-                    const status = getProblemStatus(solvedMap, selectedSlug, inspectProblem.id);
-                    return (
-                      <button
-                        onClick={() => handleToggleSolved(inspectProblem.id)}
-                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-xs font-semibold transition-all shadow-lg border cursor-pointer ${
-                          status === 'solved'
-                            ? 'bg-success/10 text-success border-success/30 hover:bg-success/20'
-                            : status === 'progress'
-                            ? 'bg-warning/10 text-warning border-warning/30 hover:bg-warning/20'
-                            : 'bg-surface-700 text-gray-300 border-surface-600 hover:bg-surface-650'
-                        }`}
-                      >
-                        {status === 'solved' ? (
-                          <><CheckCircle2 className="w-4 h-4" /> Solved ✔</>
-                        ) : status === 'progress' ? (
-                          <><span className="font-mono text-sm leading-none mr-0.5">◐</span> In Progress</>
-                        ) : (
-                          <><span className="font-mono text-sm leading-none mr-0.5">○</span> Mark In Progress / Solved</>
-                        )}
-                      </button>
-                    );
-                  })()}
+                  <button
+                    onClick={() => handleToggleSolved(inspectProblem.id)}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-xs font-semibold transition-all shadow-lg border cursor-pointer ${
+                      isSolved(solvedMap, selectedSlug, inspectProblem.id)
+                        ? 'bg-success/10 text-success border-success/30 hover:bg-success/20'
+                        : 'bg-gradient-to-r from-accent to-accent-light text-white hover:opacity-90 border-transparent'
+                    }`}
+                  >
+                    {isSolved(solvedMap, selectedSlug, inspectProblem.id)
+                      ? <><CheckCircle2 className="w-4 h-4" /> Completed ✓</>
+                      : <><Check className="w-4 h-4" /> Mark as Solved</>}
+                  </button>
                 </div>
               </div>
             </motion.div>
