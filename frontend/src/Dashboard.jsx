@@ -636,10 +636,10 @@ export default function App() {
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1.5 bg-surface-700 p-1 rounded-lg border border-surface-500">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                    className="p-1 hover:bg-surface-600 rounded text-gray-400 hover:text-white transition-colors cursor-pointer"
+                    className="p-1.5 bg-surface-700 border border-surface-500 rounded-lg text-gray-400 hover:text-white hover:border-accent transition-all cursor-pointer flex items-center justify-center h-[30px]"
                     title={`Sort direction: ${sortOrder === 'asc' ? 'Ascending' : 'Descending'}. Click to toggle.`}
                   >
                     <ArrowUpDown className={`w-3.5 h-3.5 transition-all duration-200 ${sortOrder === 'asc' ? 'text-accent-light rotate-180' : ''}`} />
@@ -650,12 +650,12 @@ export default function App() {
                       setSortBy(e.target.value);
                       setSortOrder(e.target.value === 'title' ? 'asc' : 'desc');
                     }}
-                    className="bg-transparent text-[11px] text-gray-300 focus:outline-none cursor-pointer pr-1"
+                    className="bg-surface-700 border border-surface-500 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-accent cursor-pointer h-[30px]"
                   >
-                    <option value="frequency">Most Asked</option>
-                    <option value="revision">Revision Mode</option>
-                    <option value="difficulty">Difficulty</option>
-                    <option value="acceptance">Acceptance</option>
+                    <option value="frequency" className="bg-surface-800 text-white">Most Asked</option>
+                    <option value="revision" className="bg-surface-800 text-white">Revision Mode</option>
+                    <option value="difficulty" className="bg-surface-800 text-white">Difficulty</option>
+                    <option value="acceptance" className="bg-surface-800 text-white">Acceptance</option>
                   </select>
                 </div>
 
