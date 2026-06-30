@@ -631,7 +631,14 @@ export default function App() {
                           </div>
 
                           {/* Difficulty */}
-                          <DiffBadge diff={p.difficulty} />
+                          <div className="flex flex-col items-start gap-1">
+                            <DiffBadge diff={p.difficulty} />
+                            {p.rating && (
+                              <span className="text-[10px] text-gray-500 font-mono" title="LeetCode Contest Rating">
+                                ★ {p.rating}
+                              </span>
+                            )}
+                          </div>
 
                           {/* LeetCode Link */}
                           <div className="flex justify-center">
@@ -714,6 +721,11 @@ export default function App() {
 
                 <div className="flex items-center gap-2 flex-wrap">
                   <DiffBadge diff={inspectProblem.difficulty} />
+                  {inspectProblem.rating && (
+                    <span className="text-[10px] text-gray-400 font-mono bg-surface-800 px-1.5 py-0.5 rounded border border-surface-700" title="LeetCode Contest Rating">
+                      ★ {inspectProblem.rating}
+                    </span>
+                  )}
                   <span className="text-xs text-gray-500">Reported {inspectProblem.reportCount}×</span>
                   {inspectProblem.acceptanceRate && (
                     <span className="text-xs text-gray-500">· {Number(inspectProblem.acceptanceRate).toFixed(1)}% acceptance</span>
