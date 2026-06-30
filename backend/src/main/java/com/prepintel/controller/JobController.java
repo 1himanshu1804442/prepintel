@@ -110,9 +110,10 @@ public class JobController {
         stats.put("difficulty", difficulty);
 
         // Topic trends
-        List<String> topicStrings = reportRepository.getTopicsForCompany(slug);
+        List<Object[]> topicStrings = reportRepository.getTopicsForCompany(slug);
         Map<String, Integer> topicCounts = new LinkedHashMap<>();
-        for (String ts : topicStrings) {
+        for (Object[] row : topicStrings) {
+            String ts = (String) row[1];
             if (ts != null && !ts.isBlank()) {
                 for (String topic : ts.split(",")) {
                     String t = topic.trim();

@@ -47,10 +47,10 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
            "GROUP BY r.problem.difficulty")
     List<Object[]> getDifficultyDistribution(@Param("companySlug") String companySlug);
 
-    // Get top topics for a company
-    @Query("SELECT r.problem.topics FROM InterviewReport r " +
-           "WHERE r.company.slug = :companySlug AND r.timeframe = 'all_time' AND r.problem.topics IS NOT NULL AND r.problem.topics <> ''")
-    List<String> getTopicsForCompany(@Param("companySlug") String companySlug);
+    // Get distinct problem topics for a company to calculate topic trends without double counting
+    @Query("SELECT DISTINCT r.problem.id, r.problem.topics FROM InterviewReport r " +
+           "WHERE r.company.slug = :companySlug AND r.problem.topics IS NOT NULL AND r.problem.topics <> ''")
+    List<Object[]> getTopicsForCompany(@Param("companySlug") String companySlug);
 
     // Get global problems sorted by overall frequency
     @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
