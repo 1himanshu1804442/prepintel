@@ -356,7 +356,7 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       {/* ─── Top Bar ─── */}
-      <header className="glass-panel border-b border-surface-600 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+      <header className="glass-panel border-b border-surface-600 px-12 py-5 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <h1 className="font-display font-bold text-xl tracking-tight">PrepIntel</h1>
           <span className="text-[11px] text-gray-500 font-mono bg-surface-700 px-2.5 py-1 rounded-lg">
@@ -385,7 +385,7 @@ export default function App() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* ─── Sidebar: Companies, Global, Topics ─── */}
-        <aside className="w-60 flex-shrink-0 glass-panel border-r border-surface-600 flex flex-col overflow-hidden">
+        <aside className="w-72 flex-shrink-0 glass-panel border-r border-surface-600 flex flex-col overflow-hidden">
           <div className="p-2 border-b border-surface-600 flex gap-1 bg-surface-800/40">
             {['companies', 'global', 'topics'].map(tab => (
               <button
@@ -438,9 +438,9 @@ export default function App() {
                   <button
                     key={c.slug}
                     onClick={() => { setSelectedSlug(c.slug); setSearchQuery(''); setFilterDiff('All'); }}
-                    className={`w-full text-left px-3 py-1.5 flex items-center justify-between rounded-md transition-colors group text-sm ${
+                    className={`w-full text-left px-4 py-2.5 flex items-center justify-between rounded-lg transition-colors group text-[15px] ${
                       active 
-                        ? 'bg-accent/10 text-white font-medium' 
+                        ? 'bg-accent/10 text-white font-semibold' 
                         : 'text-gray-400 hover:text-gray-200 hover:bg-surface-700/50'
                     }`}
                   >
@@ -463,9 +463,9 @@ export default function App() {
                   <button
                     key={t.topic}
                     onClick={() => { setSelectedTopic(t.topic); setSearchQuery(''); setFilterDiff('All'); }}
-                    className={`w-full text-left px-3 py-1.5 flex items-center justify-between rounded-md transition-colors group text-sm ${
+                    className={`w-full text-left px-4 py-2.5 flex items-center justify-between rounded-lg transition-colors group text-[15px] ${
                       active 
-                        ? 'bg-accent/10 text-white font-medium' 
+                        ? 'bg-accent/10 text-white font-semibold' 
                         : 'text-gray-400 hover:text-gray-200 hover:bg-surface-700/50'
                     }`}
                   >
@@ -478,7 +478,7 @@ export default function App() {
               })
             ) : (
               <button
-                className="w-full text-left px-3 py-1.5 flex items-center justify-between rounded-md bg-accent/10 text-white font-medium text-sm"
+                className="w-full text-left px-4 py-2.5 flex items-center justify-between rounded-lg bg-accent/10 text-white font-semibold text-[15px]"
               >
                 <span className="text-[13px]">Global Leaderboard</span>
                 <span className="text-[10px] font-mono text-gray-400">{problems.length}</span>
@@ -490,7 +490,7 @@ export default function App() {
         {/* ─── Main Content ─── */}
         <main className="flex-1 overflow-y-auto">
           {(selectedCompany || sidebarTab === 'global' || (sidebarTab === 'topics' && selectedTopic)) ? (
-            <div className="p-6 space-y-6">
+            <div className="p-10 space-y-10 max-w-7xl mx-auto w-full">
               {/* ─── Header ─── */}
               <div className="flex items-start justify-between">
                 <div>
@@ -737,7 +737,7 @@ export default function App() {
                   </div>
                 )}
                 {/* Table header */}
-                <div className="grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
+                <div className="grid grid-cols-[40px_1fr_100px_60px_140px_70px_90px] gap-4 px-6 py-4 border-b border-surface-600 text-xs text-gray-500 uppercase tracking-widest font-bold">
                   <span></span>
                   <span>Question</span>
                   <span>Difficulty</span>
@@ -762,7 +762,7 @@ export default function App() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: Math.min(idx * 0.008, 0.3) }}
-                          className={`grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3.5 text-xs items-center card-row group ${solved ? 'opacity-50' : ''}`}
+                          className={`grid grid-cols-[40px_1fr_100px_60px_140px_70px_90px] gap-4 px-6 py-5 text-[13px] items-center card-row group ${solved ? 'opacity-50' : ''}`}
                         >
                           {/* LC ID */}
                           <span className="text-gray-600 font-mono text-[11px]">#{p.leetcodeId}</span>
