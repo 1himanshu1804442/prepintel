@@ -754,14 +754,11 @@ export default function App() {
                   ) : filteredProblems.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 text-xs">No questions match your filters.</div>
                   ) : (
-                    filteredProblems.map((p, idx) => {
+                    filteredProblems.slice(0, 150).map((p, idx) => {
                       const solved = isSolved(solvedMap, selectedSlug, p.id);
                       return (
-                        <motion.div
+                        <div
                           key={p.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: Math.min(idx * 0.008, 0.3) }}
                           className={`grid grid-cols-[40px_1fr_100px_60px_140px_70px_90px] gap-4 px-6 py-5 text-[13px] items-center card-row group ${solved ? 'opacity-50' : ''}`}
                         >
                           {/* LC ID */}
@@ -820,7 +817,7 @@ export default function App() {
                               {solved ? 'Solved' : 'Todo'}
                             </button>
                           </div>
-                        </motion.div>
+                        </div>
                       );
                     })
                   )}
