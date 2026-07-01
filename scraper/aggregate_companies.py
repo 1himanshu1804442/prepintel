@@ -412,6 +412,8 @@ def main():
         # 1. Insert Companies
         f.write("-- 1. Insert Companies\n")
         for slug, display_name in POPULAR_COMPANIES.items():
+            if slug not in company_problems:
+                continue
             has_limited = "true" if slug not in csv_results else "false"
             oa_pattern = OA_PATTERNS.get(slug, "Unknown")
             name_esc = display_name.replace("'", "''")
