@@ -1,6 +1,4 @@
-<div align="center">
-  <video src="assets/promo_video.mp4" width="100%" controls autoplay loop muted></video>
-</div>
+<video src="./assets/promo_video.mp4" controls="controls" width="100%"></video>
 
 # 🎯 PrepIntel Pro
 
