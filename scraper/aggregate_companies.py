@@ -7,7 +7,8 @@ import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Target file paths
-OUTPUT_SQL = "../backend/src/main/resources/data.sql"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_SQL = os.path.join(script_dir, "../backend/src/main/resources/data.sql")
 
 # Mappings of base URLs
 REPOS = [
@@ -273,14 +274,57 @@ def parse_csv_data(csv_text):
             continue
     return problems
 
+CORE_PROBLEMS = [
+    (1, "Two Sum", "two-sum", "Easy", 54.2, "https://leetcode.com/problems/two-sum/", "Array, Hash Table"),
+    (7, "Reverse Integer", "reverse-integer", "Medium", 28.1, "https://leetcode.com/problems/reverse-integer/", "Math"),
+    (9, "Palindrome Number", "palindrome-number", "Easy", 54.9, "https://leetcode.com/problems/palindrome-number/", "Math"),
+    (13, "Roman to Integer", "roman-to-integer", "Easy", 60.1, "https://leetcode.com/problems/roman-to-integer/", "String, Math"),
+    (14, "Longest Common Prefix", "longest-common-prefix", "Easy", 41.2, "https://leetcode.com/problems/longest-common-prefix/", "String"),
+    (20, "Valid Parentheses", "valid-parentheses", "Easy", 40.5, "https://leetcode.com/problems/valid-parentheses/", "String, Stack"),
+    (21, "Merge Two Sorted Lists", "merge-two-sorted-lists", "Easy", 62.3, "https://leetcode.com/problems/merge-two-sorted-lists/", "Linked List, Recursion"),
+    (26, "Remove Duplicates from Sorted Array", "remove-duplicates-from-sorted-array", "Easy", 52.8, "https://leetcode.com/problems/remove-duplicates-from-sorted-array/", "Array, Two Pointers"),
+    (27, "Remove Element", "remove-element", "Easy", 55.1, "https://leetcode.com/problems/remove-element/", "Array, Two Pointers"),
+    (28, "Find the Index of the First Occurrence in a String", "find-the-index-of-the-first-occurrence-in-a-string", "Easy", 40.2, "https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/", "Two Pointers, String"),
+    (35, "Search Insert Position", "search-insert-position", "Easy", 44.3, "https://leetcode.com/problems/search-insert-position/", "Array, Binary Search"),
+    (53, "Maximum Subarray", "maximum-subarray", "Medium", 50.4, "https://leetcode.com/problems/maximum-subarray/", "Array, Dynamic Programming"),
+    (58, "Length of Last Word", "length-of-last-word", "Easy", 44.9, "https://leetcode.com/problems/length-of-last-word/", "String"),
+    (66, "Plus One", "plus-one", "Easy", 43.2, "https://leetcode.com/problems/plus-one/", "Array, Math"),
+    (69, "Sqrt(x)", "sqrtx", "Easy", 37.8, "https://leetcode.com/problems/sqrtx/", "Math, Binary Search"),
+    (70, "Climbing Stairs", "climbing-stairs", "Easy", 52.3, "https://leetcode.com/problems/climbing-stairs/", "Math, Dynamic Programming"),
+    (83, "Remove Duplicates from Sorted List", "remove-duplicates-from-sorted-list", "Easy", 51.2, "https://leetcode.com/problems/remove-duplicates-from-sorted-list/", "Linked List"),
+    (88, "Merge Sorted Array", "merge-sorted-array", "Easy", 47.6, "https://leetcode.com/problems/merge-sorted-array/", "Array, Two Pointers, Sorting"),
+    (121, "Best Time to Buy and Sell Stock", "best-time-to-buy-and-sell-stock", "Easy", 54.1, "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/", "Array, Dynamic Programming"),
+    (125, "Valid Palindrome", "valid-palindrome", "Easy", 45.2, "https://leetcode.com/problems/valid-palindrome/", "Two Pointers, String"),
+    (136, "Single Number", "single-number", "Easy", 70.8, "https://leetcode.com/problems/single-number/", "Array, Bit Manipulation"),
+    (141, "Linked List Cycle", "linked-list-cycle", "Easy", 47.9, "https://leetcode.com/problems/linked-list-cycle/", "Linked List, Two Pointers"),
+    (169, "Majority Element", "majority-element", "Easy", 63.8, "https://leetcode.com/problems/majority-element/", "Array, Sorting, Divide and Conquer"),
+    (191, "Number of 1 Bits", "number-of-1-bits", "Easy", 68.1, "https://leetcode.com/problems/number-of-1-bits/", "Bit Manipulation"),
+    (202, "Happy Number", "happy-number", "Easy", 45.8, "https://leetcode.com/problems/happy-number/", "Hash Table, Math"),
+    (217, "Contains Duplicate", "contains-duplicate", "Easy", 61.2, "https://leetcode.com/problems/contains-duplicate/", "Array, Hash Table"),
+    (231, "Power of Two", "power-of-two", "Easy", 46.3, "https://leetcode.com/problems/power-of-two/", "Math, Bit Manipulation"),
+    (242, "Valid Anagram", "valid-anagram", "Easy", 63.1, "https://leetcode.com/problems/valid-anagram/", "Hash Table, String, Sorting"),
+    (268, "Missing Number", "missing-number", "Easy", 63.2, "https://leetcode.com/problems/missing-number/", "Array, Binary Search, Bit Manipulation"),
+    (283, "Move Zeroes", "move-zeroes", "Easy", 61.5, "https://leetcode.com/problems/move-zeroes/", "Array, Two Pointers"),
+    (326, "Power of Three", "power-of-three", "Easy", 45.2, "https://leetcode.com/problems/power-of-three/", "Math"),
+    (342, "Power of Four", "power-of-four", "Easy", 47.1, "https://leetcode.com/problems/power-of-four/", "Math"),
+    (344, "Reverse String", "reverse-string", "Easy", 77.2, "https://leetcode.com/problems/reverse-string/", "Two Pointers, String"),
+    (349, "Intersection of Two Arrays", "intersection-of-two-arrays", "Easy", 71.5, "https://leetcode.com/problems/intersection-of-two-arrays/", "Array, Hash Table, Two Pointers"),
+    (387, "First Unique Character in a String", "first-unique-character-in-a-string", "Easy", 60.2, "https://leetcode.com/problems/first-unique-character-in-a-string/", "Hash Table, String, Queue"),
+    (412, "Fizz Buzz", "fizz-buzz", "Easy", 70.5, "https://leetcode.com/problems/fizz-buzz/", "Array, String, Simulation"),
+    (485, "Max Consecutive Ones", "max-consecutive-ones", "Easy", 57.2, "https://leetcode.com/problems/max-consecutive-ones/", "Array"),
+    (704, "Binary Search", "binary-search", "Easy", 56.8, "https://leetcode.com/problems/binary-search/", "Array, Binary Search"),
+    (977, "Squares of a Sorted Array", "squares-of-a-sorted-array", "Easy", 72.1, "https://leetcode.com/problems/squares-of-a-sorted-array/", "Array, Two Pointers, Sorting")
+]
+
 def main():
     print(f"Aggregating {len(POPULAR_COMPANIES)} major tech and finance companies...")
     
     # Prepare download tasks
     tasks = []
+    service_companies = ["infosys", "tcs", "wipro", "cognizant", "accenture", "capgemini", "techmahindra", "ltimindtree", "persistent", "virtusa", "hexaware", "zoho"]
     for slug in POPULAR_COMPANIES.keys():
         # Do not download for service companies as they are local placement sheets
-        if slug in ["infosys", "tcs", "wipro", "cognizant", "accenture", "capgemini", "techmahindra", "ltimindtree", "persistent", "virtusa", "hexaware", "zoho"]:
+        if slug in service_companies:
             continue
         for tf_slug, fn in TIMEFRAME_MAPPINGS:
             tasks.append((slug, tf_slug, fn))
@@ -315,6 +359,25 @@ def main():
                 leetcode_id = p["leetcode_id"]
                 if leetcode_id not in unique_problems:
                     unique_problems[leetcode_id] = p
+                    
+    # Inject service companies
+    for slug in service_companies:
+        if slug not in company_problems:
+            company_problems[slug] = {}
+        for tf_slug, _ in TIMEFRAME_MAPPINGS:
+            company_problems[slug][tf_slug] = []
+            for cp in CORE_PROBLEMS:
+                p_obj = {
+                    "leetcode_id": cp[0],
+                    "title": cp[1],
+                    "title_slug": cp[2],
+                    "difficulty": cp[3],
+                    "acceptance_rate": cp[4],
+                    "url": cp[5]
+                }
+                company_problems[slug][tf_slug].append(p_obj)
+                if cp[0] not in unique_problems:
+                    unique_problems[cp[0]] = p_obj
 
     # Write SQL Script
     print(f"Generating optimized database seed script at {OUTPUT_SQL}...")
