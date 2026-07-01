@@ -208,91 +208,13 @@ public class DatabaseSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("[PrepIntel Seeder] Starting database auto-seeding...");
 
-        // 1. Create all companies
-        for (Map.Entry<String, String> entry : COMPANIES.entrySet()) {
-            String slug = entry.getKey();
-            String name = entry.getValue();
-            String oaPattern = OA_PATTERNS.getOrDefault(slug, "Unknown");
-
-            Optional<Company> existing = companyRepository.findBySlug(slug);
-            if (existing.isEmpty()) {
-                companyRepository.save(
-                    Company.builder()
-                        .name(name)
-                        .slug(slug)
-                        .oaPattern(oaPattern)
-                        .hasLimitedData(false)
-                        .build()
-                );
-            }
-        }
-
-        // 2. Seed from GitHub CSVs
-        for (String companySlug : COMPANIES.keySet()) {
-            Company company = companyRepository.findBySlug(companySlug).orElse(null);
-            if (company == null) continue;
-
-            Set<Integer> seededIds = new HashSet<>();
-            String normalizedSlug = companySlug.toLowerCase();
-
-            // Seed Local Placement Core Sheet first for all service companies
-            if (SERVICE_COMPANIES.contains(companySlug)) {
-                seedPlacementCoreProblems(company, seededIds);
-            }
-
-            for (TimeframeMapping tf : TIMEFRAMES) {
-                if (seededIds.size() >= MAX_PROBLEMS_PER_COMPANY) {
-                    break;
-                }
-
-                String ghFilename = tf.ghFilename;
-                String dbTimeframe = tf.dbTimeframe;
-
-                boolean sourceSuccess = false;
-
-                for (String baseUrl : BASE_URLS) {
-                    if (seededIds.size() >= MAX_PROBLEMS_PER_COMPANY) break;
-
-                    String url1 = String.format("%s/%s/%s.csv", baseUrl, normalizedSlug, ghFilename);
-                    String url2 = String.format("%s/%s_%s.csv", baseUrl, normalizedSlug, ghFilename);
-
-                    try {
-                        seedFromUrl(company, dbTimeframe, url1, seededIds);
-                        sourceSuccess = true;
-                        break; 
-                    } catch (Exception e) {
-                        // Source 1 failed, ignore and try Source 2
-                    }
-
-                    if (!sourceSuccess) {
-                        try {
-                            seedFromUrl(company, dbTimeframe, url2, seededIds);
-                            sourceSuccess = true;
-                            break;
-                        } catch (Exception e) {
-                            // Source 2 failed, ignore
-                        }
-                    }
-                }
-            }
-
-            if (seededIds.isEmpty()) {
-                company.setHasLimitedData(true);
-                companyRepository.save(company);
-                System.out.println("[PrepIntel Seeder] No data found for " + company.getName() + ". Marked as Limited Data.");
-            } else {
-                System.out.println("[PrepIntel Seeder] Seeded " + seededIds.size() + " problems for " + company.getName());
-            }
-        }
-
-        System.out.println("[PrepIntel Seeder] Database auto-seeding completed!");
-
         // 3. Seed Zerotrac LeetCode Contest Ratings
         try {
             seedZerotracRatings();
         } catch (Exception e) {
             System.err.println("[PrepIntel Seeder] Failed to seed Zerotrac ratings: " + e.getMessage());
         }
+        System.out.println("[PrepIntel Seeder] Database auto-seeding completed!");
     }
 
     @Transactional

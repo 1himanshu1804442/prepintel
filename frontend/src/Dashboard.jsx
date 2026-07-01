@@ -97,6 +97,54 @@ function timeAgo(dateStr) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+// ─── Table Skeleton Loader (Butter-smooth transitions) ───
+function TableSkeleton() {
+  return (
+    <div className="divide-y divide-surface-700/30">
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-4 items-center animate-pulse"
+        >
+          {/* LC ID */}
+          <div className="h-3.5 w-6 bg-surface-600/40 rounded" />
+          
+          {/* Title + Topics */}
+          <div className="space-y-1.5 min-w-0">
+            <div className="h-3.5 w-1/3 bg-surface-600/60 rounded" />
+            <div className="flex gap-1.5 flex-wrap">
+              <div className="h-4.5 w-12 bg-surface-700/60 rounded-full" />
+              <div className="h-4.5 w-14 bg-surface-700/60 rounded-full" />
+            </div>
+          </div>
+          
+          {/* Difficulty */}
+          <div className="h-5.5 w-14 bg-surface-700/60 rounded-full" />
+          
+          {/* LeetCode link */}
+          <div className="flex justify-center">
+            <div className="w-7 h-7 bg-surface-700/50 rounded-md" />
+          </div>
+          
+          {/* Frequency bar */}
+          <div className="flex items-center gap-1.5">
+            <div className="h-1.5 w-16 bg-surface-700/60 rounded-full" />
+            <div className="h-3 w-6 bg-surface-700/60 rounded" />
+          </div>
+          
+          {/* Acceptance */}
+          <div className="h-3.5 w-8 bg-surface-600/40 rounded" />
+          
+          {/* Status pill */}
+          <div className="flex justify-center">
+            <div className="h-6 w-16 bg-surface-700/60 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════
@@ -672,7 +720,22 @@ export default function App() {
               </div>
 
               {/* ─── Problem Table ─── */}
-              <div className="glass-panel rounded-xl overflow-hidden">
+              <div className="glass-panel rounded-xl overflow-hidden relative">
+                {/* Shimmering loading bar at the top */}
+                {loadingProblems && (
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-surface-600/30 overflow-hidden z-10">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-accent to-accent-light"
+                      initial={{ left: "-100%", width: "100%", position: "absolute" }}
+                      animate={{ left: "100%" }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.2,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  </div>
+                )}
                 {/* Table header */}
                 <div className="grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3 border-b border-surface-600 text-[10px] text-gray-500 uppercase tracking-wider font-medium">
                   <span></span>
@@ -687,10 +750,7 @@ export default function App() {
                 {/* Table body */}
                 <div className="max-h-[540px] overflow-y-auto">
                   {loadingProblems ? (
-                    <div className="p-8 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-accent mx-auto mb-2" />
-                      <p className="text-xs text-gray-500">Loading questions...</p>
-                    </div>
+                    <TableSkeleton />
                   ) : filteredProblems.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 text-xs">No questions match your filters.</div>
                   ) : (
