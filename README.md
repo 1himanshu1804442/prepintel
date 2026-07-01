@@ -1,3 +1,7 @@
+<div align="center">
+  <video src="assets/promo_video.mp4" width="100%" controls autoplay loop muted></video>
+</div>
+
 # 🎯 PrepIntel Pro
 
 An AI-powered interview intelligence dashboard designed to help software engineers prepare for top tech company interviews efficiently.
@@ -88,3 +92,4 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 ## 📝 License
 
 This project is licensed under the MIT License.
+

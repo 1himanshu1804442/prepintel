@@ -502,7 +502,7 @@ export default function App() {
                   <div className="flex items-center gap-4 mt-2">
                     <span className="text-xs text-gray-500">{problems.length} curated problems</span>
                     <span className="text-xs text-gray-600">·</span>
-                    <button onClick={() => setShowAboutModal(true)} className="text-xs text-accent-light hover:underline font-medium transition-colors cursor-pointer">{totalReports.toLocaleString()} community reports →</button>
+                    <a href="https://github.com/hxu296/leetcode-company-wise-problems-2022" target="_blank" rel="noopener noreferrer" className="text-xs text-accent-light hover:underline font-medium transition-colors cursor-pointer">{totalReports.toLocaleString()} community reports →</a>
                   </div>
                   {sidebarTab === 'companies' && selectedCompany?.oaPattern && selectedCompany.oaPattern !== 'Unknown' && (
                     <div className="mt-2 flex items-center gap-2">
