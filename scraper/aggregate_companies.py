@@ -379,6 +379,24 @@ def main():
                 if cp[0] not in unique_problems:
                     unique_problems[cp[0]] = p_obj
 
+    # Filter out companies with fewer than 10 total unique problems
+    company_problem_counts = {}
+    for slug, timeframes_data in company_problems.items():
+        unique_company_probs = set()
+        for tf, probs in timeframes_data.items():
+            for p in probs:
+                unique_company_probs.add(p["leetcode_id"])
+        company_problem_counts[slug] = len(unique_company_probs)
+    
+    filtered_company_problems = {}
+    for slug, timeframes_data in company_problems.items():
+        if company_problem_counts.get(slug, 0) >= 10:
+            filtered_company_problems[slug] = timeframes_data
+        else:
+            print(f"Skipping {slug} because it only has {company_problem_counts.get(slug, 0)} problems.")
+            
+    company_problems = filtered_company_problems
+
     # Write SQL Script
     print(f"Generating optimized database seed script at {OUTPUT_SQL}...")
     os.makedirs(os.path.dirname(OUTPUT_SQL), exist_ok=True)

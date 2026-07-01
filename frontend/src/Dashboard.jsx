@@ -354,7 +354,7 @@ export default function App() {
   const updatedAgo = timeAgo(lastUpdated.toISOString());
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* ─── Top Bar ─── */}
       <header className="glass-panel border-b border-surface-600 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
