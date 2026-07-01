@@ -59,6 +59,30 @@
   border-color: rgba(108, 92, 231, 0.12);
 }
 
+/* Card Row (Video Style) */
+.card-row {
+  background: #15161D;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.card-row:hover {
+  border-color: rgba(108, 92, 231, 0.4);
+  box-shadow: 0 4px 20px rgba(108, 92, 231, 0.15);
+  transform: translateY(-1px);
+}
+
+.modal-glow {
+  box-shadow: 0 0 60px rgba(108, 92, 231, 0.15), inset 0 0 20px rgba(108, 92, 231, 0.05);
+  border: 1px solid rgba(108, 92, 231, 0.3);
+}
+
+.success-glow {
+  box-shadow: 0 0 20px rgba(0, 184, 148, 0.2);
+  border: 1px solid rgba(0, 184, 148, 0.4);
+}
+
 /* Topic bar fills */
 .topic-bar {
   background: linear-gradient(90deg, rgba(0, 184, 148, 0.5), rgba(0, 184, 148, 0.2));

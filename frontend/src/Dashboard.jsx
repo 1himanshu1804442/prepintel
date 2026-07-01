@@ -762,7 +762,7 @@ export default function App() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: Math.min(idx * 0.008, 0.3) }}
-                          className={`grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3.5 border-b border-surface-700/50 text-xs items-center hover:bg-surface-700/30 transition-colors group ${solved ? 'opacity-50' : ''}`}
+                          className={`grid grid-cols-[32px_1fr_70px_48px_100px_52px_72px] gap-2 px-5 py-3.5 text-xs items-center card-row group ${solved ? 'opacity-50' : ''}`}
                         >
                           {/* LC ID */}
                           <span className="text-gray-600 font-mono text-[11px]">#{p.leetcodeId}</span>
@@ -1022,7 +1022,7 @@ function StudyPlanModal({ companySlug, companyName, problems, solvedMap, onClose
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-[560px] max-h-[85vh] glass-panel rounded-2xl border border-surface-500 z-50 overflow-hidden flex flex-col bg-surface-800"
+        className="relative w-[560px] max-h-[85vh] glass-panel rounded-2xl z-50 overflow-hidden flex flex-col bg-surface-800 modal-glow"
       >
         <div 
           onPointerDown={(e) => dragControls.start(e)}
@@ -1361,7 +1361,7 @@ function SyncProfileModal({ solvedMap, setSolvedMap, onClose }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-[480px] max-h-[85vh] glass-panel rounded-2xl border border-surface-500 z-50 overflow-hidden flex flex-col bg-surface-800"
+        className="relative w-[480px] max-h-[85vh] glass-panel rounded-2xl z-50 overflow-hidden flex flex-col bg-surface-800 modal-glow"
       >
         {/* Header */}
         <div 
@@ -1464,7 +1464,8 @@ function SyncProfileModal({ solvedMap, setSolvedMap, onClose }) {
           )}
 
           {statusMsg && (
-            <div className="p-3.5 bg-success/10 border border-success/20 text-success rounded-lg text-xs font-medium">
+            <div className="p-3.5 bg-success/10 text-success rounded-lg text-xs font-medium success-glow flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
               {statusMsg}
             </div>
           )}
