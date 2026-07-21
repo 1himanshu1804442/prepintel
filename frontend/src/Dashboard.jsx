@@ -211,10 +211,13 @@ export default function App() {
         fetch(`${API}/companies/${selectedSlug}/problems?timeframe=${timeframe}`).then(r => r.json()),
         fetch(`${API}/companies/${selectedSlug}/stats`).then(r => r.json()),
       ]).then(([probs, stats]) => {
-        setProblems(probs);
-        setCompanyStats(stats);
+        setProblems(Array.isArray(probs) ? probs : []);
+        setCompanyStats(stats || {});
         setLoadingProblems(false);
-      }).catch(() => setLoadingProblems(false));
+      }).catch(() => {
+        setProblems([]);
+        setLoadingProblems(false);
+      });
 
 
     } else {
@@ -223,18 +226,21 @@ export default function App() {
         fetch(`${API}/problems`).then(r => r.json()),
         fetch(`${API}/stats/global`).then(r => r.json()),
       ]).then(([probs, stats]) => {
-        setProblems(probs);
-        setGlobalStats(stats);
+        setProblems(Array.isArray(probs) ? probs : []);
+        setGlobalStats(stats || {});
         setCompanyStats({
           difficulty: {
-            Easy: stats.easyCount,
-            Medium: stats.mediumCount,
-            Hard: stats.hardCount
+            Easy: stats?.easyCount || 0,
+            Medium: stats?.mediumCount || 0,
+            Hard: stats?.hardCount || 0
           },
-          topTopics: stats.topTopics
+          topTopics: stats?.topTopics || []
         });
         setLoadingProblems(false);
-      }).catch(() => setLoadingProblems(false));
+      }).catch(() => {
+        setProblems([]);
+        setLoadingProblems(false);
+      });
     }
   }, [selectedSlug, timeframe, sidebarTab]);
 
@@ -257,19 +263,19 @@ export default function App() {
     setPresetLimit(null);
   }, [selectedSlug, selectedTopic, sidebarTab]);
 
-  const selectedCompany = companies.find(c => c.slug === selectedSlug);
+  const selectedCompany = Array.isArray(companies) ? companies.find(c => c.slug === selectedSlug) : null;
 
   // Filter + Sort problems
   const filteredProblems = useMemo(() => {
-    let list = [...problems];
-    if (filterDiff !== 'All') list = list.filter(p => p.difficulty === filterDiff);
+    let list = Array.isArray(problems) ? [...problems] : [];
+    if (filterDiff !== 'All') list = list.filter(p => p && p.difficulty === filterDiff);
     if (sidebarTab === 'topics' && selectedTopic) {
-      list = list.filter(p => p.topics && p.topics.split(',').map(x => x.trim()).includes(selectedTopic));
+      list = list.filter(p => p && p.topics && p.topics.split(',').map(x => x.trim()).includes(selectedTopic));
     }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      list = list.filter(p => p.title.toLowerCase().includes(q) ||
-        (p.topics && p.topics.toLowerCase().includes(q)));
+      list = list.filter(p => p && p.title && (p.title.toLowerCase().includes(q) ||
+        (p.topics && p.topics.toLowerCase().includes(q))));
     }
     if (sortBy === 'revision') {
       list.sort((a, b) => {
@@ -279,20 +285,20 @@ export default function App() {
           const comp = aSolved ? 1 : -1;
           return sortOrder === 'desc' ? comp : -comp;
         }
-        const compFreq = b.reportCount - a.reportCount;
+        const compFreq = (b.reportCount || 0) - (a.reportCount || 0);
         return sortOrder === 'desc' ? compFreq : -compFreq;
       });
     }
     else if (sortBy === 'frequency') {
       list.sort((a, b) => {
-        const comp = b.reportCount - a.reportCount;
+        const comp = (b.reportCount || 0) - (a.reportCount || 0);
         return sortOrder === 'desc' ? comp : -comp;
       });
     }
     else if (sortBy === 'difficulty') {
       const order = { Easy: 0, Medium: 1, Hard: 2 };
       list.sort((a, b) => {
-        const comp = order[a.difficulty] - order[b.difficulty];
+        const comp = (order[a.difficulty] || 0) - (order[b.difficulty] || 0);
         return sortOrder === 'desc' ? comp : -comp;
       });
     }
@@ -304,7 +310,7 @@ export default function App() {
     }
     else if (sortBy === 'title') {
       list.sort((a, b) => {
-        const comp = a.title.localeCompare(b.title);
+        const comp = (a.title || '').localeCompare(b.title || '');
         return sortOrder === 'asc' ? comp : -comp;
       });
     }
@@ -315,14 +321,16 @@ export default function App() {
     return list;
   }, [problems, filterDiff, searchQuery, sortBy, sortOrder, solvedMap, selectedSlug, presetLimit]);
 
+  const safeProblems = Array.isArray(problems) ? problems : [];
+
   // High-confidence problems = top 250 or all if fewer
-  const highConfidenceCount = Math.min(problems.length, 250);
+  const highConfidenceCount = Math.min(safeProblems.length, 250);
 
   // Solved stats for this company (against high-confidence set)
   const solvedCount = useMemo(() => {
     const slugKey = selectedSlug || 'global';
-    return problems.slice(0, highConfidenceCount).filter(p => isSolved(solvedMap, slugKey, p.id)).length;
-  }, [problems, solvedMap, selectedSlug, highConfidenceCount]);
+    return safeProblems.slice(0, highConfidenceCount).filter(p => p && isSolved(solvedMap, slugKey, p.id)).length;
+  }, [safeProblems, solvedMap, selectedSlug, highConfidenceCount]);
 
   const solvedPercent = highConfidenceCount > 0 ? Math.round((solvedCount / highConfidenceCount) * 100) : 0;
 
@@ -338,12 +346,13 @@ export default function App() {
 
   // Dynamic Overall Dataset Confidence based on problem sample size
   const overallConfidence = useMemo(() => {
-    if (problems.length === 0) return 35;
-    if (problems.length >= 100) return 92;
-    if (problems.length >= 50) return 84;
-    if (problems.length >= 20) return 72;
+    const len = safeProblems.length;
+    if (len === 0) return 35;
+    if (len >= 100) return 92;
+    if (len >= 50) return 84;
+    if (len >= 20) return 72;
     return 48;
-  }, [problems]);
+  }, [safeProblems]);
 
   // Handle solve toggle
   const handleToggleSolved = useCallback((problemId) => {

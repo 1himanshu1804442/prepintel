@@ -3,6 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #0C0D11;
+  }
+
   body {
     background-color: #0C0D11;
     background-image: 
