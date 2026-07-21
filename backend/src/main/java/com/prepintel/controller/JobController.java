@@ -86,12 +86,9 @@ public class JobController {
             map.put("topics", p.getTopics());
             map.put("rating", p.getRating());
             map.put("reportCount", count);
-            // Industry-Standard Bayesian Recency Confidence Formula:
-            // confidence = min(98, max(15, (count / (count + 5)) * 100 * recencyMultiplier + eloBonus))
-            double recencyMultiplier = "30_days".equals(timeframe) ? 1.15 : "3_months".equals(timeframe) ? 1.05 : 1.0;
-            int eloBonus = p.getRating() != null && p.getRating() > 0 ? 3 : 0;
-            double bayesianBase = (count * 100.0) / (count + 5.0);
-            long conf = Math.min(98, Math.max(15, Math.round(bayesianBase * recencyMultiplier + eloBonus)));
+            // Realistic Non-Linear Relative Frequency Percentage (15% to 98% range)
+            double ratio = (double) count / Math.max(1L, maxCount);
+            long conf = Math.min(98, Math.max(15, Math.round(15 + 83 * Math.pow(ratio, 0.75))));
 
             map.put("frequencyPercent", conf);
             return map;
