@@ -6,6 +6,9 @@ import com.prepintel.entity.Problem;
 import com.prepintel.repository.CompanyRepository;
 import com.prepintel.repository.InterviewReportRepository;
 import com.prepintel.repository.ProblemRepository;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -61,11 +64,16 @@ public class ScopedDataIngestionService {
                 .build();
     }
 
+    @EventListener(ApplicationReadyEvent.class)
+    public void autoIngestOnStartup() {
+        // Trigger auto-ingestion in background thread when app starts up
+        new Thread(this::ingestTargetCompanies).start();
+    }
+
     public Map<String, Object> ingestTargetCompanies() {
-        System.out.println("[PrepIntel Ingestion] Ingesting all 5 timeframe CSV datasets across 8 target placement companies...");
+        System.out.println("[PrepIntel Ingestion] Auto-scraping 5 timeframe datasets across 8 target placement companies...");
 
         int totalProblemsScraped = 0;
-        int totalReportsCreated = 0;
 
         for (Map.Entry<String, CompanyConfig> entry : TARGET_COMPANIES.entrySet()) {
             String slug = entry.getKey();
@@ -90,7 +98,7 @@ public class ScopedDataIngestionService {
             totalProblemsScraped += scraped;
         }
 
-        System.out.println("[PrepIntel Ingestion] Complete! Ingested " + totalProblemsScraped + " timeframe-distinct reports across 8 target companies.");
+        System.out.println("[PrepIntel Ingestion] Completed auto-ingestion! Seeded " + totalProblemsScraped + " recency-tagged reports.");
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", "SUCCESS");
@@ -101,7 +109,6 @@ public class ScopedDataIngestionService {
 
     private int scrapeAllTimeframesFromGitHub(Company company, String githubFolder) {
         int count = 0;
-        // Ingest ALL 5 distinct recency timeframe CSV files from GitHub
         Map<String, String> timeframes = new LinkedHashMap<>();
         timeframes.put("30_days", "1.%20Thirty%20Days.csv");
         timeframes.put("3_months", "2.%20Three%20Months.csv");
@@ -171,7 +178,7 @@ public class ScopedDataIngestionService {
                             count++;
                         }
                     } catch (Exception ex) {
-                        // Ignore individual row error and continue
+                        // Ignore individual row error
                     }
                 }
 

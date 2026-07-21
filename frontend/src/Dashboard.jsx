@@ -336,9 +336,14 @@ export default function App() {
   const medPct = Math.round((diffDist.Medium / totalDiffProblems) * 100);
   const hardPct = Math.round((diffDist.Hard / totalDiffProblems) * 100);
 
-  // Total reports for this company
-  const totalReports = useMemo(() => problems.reduce((s, p) => s + (p.reportCount || 0), 0), [problems]);
-  const overallConfidence = useMemo(() => Math.min(98, Math.max(35, Math.round((totalReports / 500) * 100))), [totalReports]);
+  // Dynamic Overall Dataset Confidence based on problem sample size
+  const overallConfidence = useMemo(() => {
+    if (problems.length === 0) return 35;
+    if (problems.length >= 100) return 92;
+    if (problems.length >= 50) return 84;
+    if (problems.length >= 20) return 72;
+    return 48;
+  }, [problems]);
 
   // Handle solve toggle
   const handleToggleSolved = useCallback((problemId) => {
