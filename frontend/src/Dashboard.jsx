@@ -4,7 +4,7 @@ import {
   Search, ChevronRight, ExternalLink, Check, X, Sparkles,
   Calendar, BarChart3, Clock, Filter, ArrowUpDown, TrendingUp,
   Zap, Target, BookOpen, Flame, ChevronDown, Loader2, CheckCircle2,
-  Database, MessageSquare, Globe, RefreshCw
+  Database, MessageSquare, Globe, RefreshCw, Brain
 } from 'lucide-react';
 
 const API = 'http://localhost:8080/api';
@@ -169,6 +169,9 @@ export default function App() {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [inspectProblem, setInspectProblem] = useState(null);
   const [presetLimit, setPresetLimit] = useState(null); // null, 15, 30, 60
+  const [showAiSummaryModal, setShowAiSummaryModal] = useState(false);
+  const [aiHint, setAiHint] = useState(null);
+  const [loadingHint, setLoadingHint] = useState(false);
 
   const handleHeaderClick = (field) => {
     if (sortBy === field) {
@@ -512,13 +515,22 @@ export default function App() {
                   )}
                 </div>
                 {sidebarTab === 'companies' && (
-                  <button
-                    onClick={() => setShowPlanModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-accent-light text-white rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-accent/20"
-                  >
-                    <Calendar className="w-3.5 h-3.5" />
-                    Generate Study Plan
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowAiSummaryModal(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-surface-700 text-accent-light border border-surface-500 hover:border-accent hover:bg-surface-600 rounded-lg text-xs font-semibold transition-all shadow-sm"
+                    >
+                      <Brain className="w-3.5 h-3.5" />
+                      AI Coach Summary
+                    </button>
+                    <button
+                      onClick={() => setShowPlanModal(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-accent-light text-white rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-accent/20"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      Generate Study Plan
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -767,7 +779,7 @@ export default function App() {
                           {/* Title + Topics */}
                           <div className="min-w-0">
                             <button
-                              onClick={() => setInspectProblem(p)}
+                              onClick={() => { setInspectProblem(p); setAiHint(null); }}
                               className={`text-left truncate font-medium hover:text-accent-light transition-colors block w-full ${solved ? 'line-through text-gray-500' : 'text-gray-200'}`}
                             >
                               {p.title}
@@ -851,7 +863,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 z-50"
-              onClick={() => setInspectProblem(null)}
+              onClick={() => { setInspectProblem(null); setAiHint(null); }}
             />
             <motion.div
               initial={{ x: '100%' }}
@@ -863,7 +875,7 @@ export default function App() {
               <div className="p-5 space-y-5">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 font-mono text-xs">#{inspectProblem.leetcodeId}</span>
-                  <button onClick={() => setInspectProblem(null)} className="text-gray-500 hover:text-white">
+                  <button onClick={() => { setInspectProblem(null); setAiHint(null); }} className="text-gray-500 hover:text-white">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -912,7 +924,48 @@ export default function App() {
                   Open on LeetCode
                 </a>
 
-                <div className="border-t border-surface-600 pt-5">
+                <button
+                  onClick={() => {
+                    setLoadingHint(true);
+                    fetch(`${API}/problems/${inspectProblem.id}/hint`)
+                      .then(r => r.json())
+                      .then(data => {
+                        let hintText = "";
+                        if (data.rawResponse) {
+                          try {
+                            const parsed = JSON.parse(data.rawResponse);
+                            hintText = parsed.hint || parsed.error || data.rawResponse;
+                          } catch (e) {
+                            hintText = data.rawResponse;
+                          }
+                        } else if (data.hint) {
+                          hintText = data.hint;
+                        } else if (data.error) {
+                          hintText = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+                        } else {
+                          hintText = JSON.stringify(data);
+                        }
+                        setAiHint(hintText);
+                        setLoadingHint(false);
+                      })
+                      .catch(() => { setAiHint("Failed to load hint."); setLoadingHint(false); });
+                  }}
+                  disabled={loadingHint}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-surface-700 text-accent-light border border-surface-500 hover:border-accent hover:bg-surface-600 rounded-lg text-xs font-semibold transition-all w-full justify-center disabled:opacity-50 mt-4"
+                >
+                  {loadingHint ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Brain className="w-3.5 h-3.5" />}
+                  {loadingHint ? 'Asking AI Coach...' : 'Ask AI Coach for Hint'}
+                </button>
+                {aiHint && (
+                  <div className="p-4 bg-surface-800/80 rounded-xl text-[13px] text-gray-300 mt-2 whitespace-pre-wrap border border-surface-600 shadow-inner">
+                    <div className="flex items-center gap-2 mb-2 text-accent-light">
+                      <Brain className="w-4 h-4" /> <span className="font-semibold text-[10px] uppercase tracking-wider">AI Coach Hint</span>
+                    </div>
+                    {aiHint}
+                  </div>
+                )}
+
+                <div className="border-t border-surface-600 pt-5 mt-5">
                   <button
                     onClick={() => handleToggleSolved(inspectProblem.id)}
                     className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-xs font-semibold transition-all shadow-lg border cursor-pointer ${
@@ -929,6 +982,17 @@ export default function App() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* ─── AI Summary Modal ─── */}
+      <AnimatePresence>
+        {showAiSummaryModal && (
+          <AiSummaryModal
+            companySlug={selectedSlug}
+            companyName={selectedCompany?.name}
+            onClose={() => setShowAiSummaryModal(false)}
+          />
         )}
       </AnimatePresence>
 
@@ -960,6 +1024,172 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// AI SUMMARY MODAL
+// ═══════════════════════════════════════════
+function AiSummaryModal({ companySlug, companyName, onClose }) {
+  const [summaryData, setSummaryData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  useEffect(() => {
+    fetch(`${API}/companies/${companySlug}/ai-summary`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.summary) {
+          try {
+            const parsed = typeof data.summary === 'string' ? JSON.parse(data.summary) : data.summary;
+            if (parsed.error) {
+              setErrorMsg(typeof parsed.error === 'string' ? parsed.error : JSON.stringify(parsed.error));
+            } else {
+              setSummaryData(parsed);
+            }
+          } catch (e) {
+            setSummaryData({ recommendation: data.summary });
+          }
+        } else if (data.error) {
+          setErrorMsg(data.error);
+        } else {
+          setSummaryData({ recommendation: JSON.stringify(data) });
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setErrorMsg("Failed to load AI Summary.");
+        setLoading(false);
+      });
+  }, [companySlug]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-[650px] max-h-[85vh] glass-panel rounded-2xl z-50 overflow-hidden flex flex-col bg-surface-800 modal-glow"
+      >
+        <div className="p-5 border-b border-surface-600 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Brain className="w-5 h-5 text-accent-light" />
+            <h3 className="font-display font-bold text-lg text-white">AI Coach Summary — {companyName}</h3>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <Loader2 className="w-8 h-8 text-accent animate-spin" />
+              <p className="text-sm text-gray-400">Analyzing interview patterns for {companyName}...</p>
+            </div>
+          ) : errorMsg ? (
+            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-300 text-sm">
+              {errorMsg}
+            </div>
+          ) : summaryData ? (
+            <>
+              {/* Header Stats */}
+              <div className="flex items-center justify-between p-4 bg-surface-700/50 rounded-xl border border-surface-600">
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Company</h4>
+                  <p className="text-base font-bold text-white mt-0.5">{companyName}</p>
+                </div>
+                {summaryData.estimatedPrepDays && (
+                  <div className="text-right">
+                    <h4 className="text-[10px] font-semibold text-accent-light uppercase tracking-wider">Estimated Prep Time</h4>
+                    <p className="text-base font-bold text-white mt-0.5">{summaryData.estimatedPrepDays} Days</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Recommendation / Strategy */}
+              {summaryData.recommendation && (
+                <div className="p-4 bg-accent/10 border border-accent/20 rounded-xl text-gray-200 text-sm leading-relaxed">
+                  <div className="flex items-center gap-2 mb-1.5 text-accent-light font-semibold text-xs uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4" /> Preparation Strategy
+                  </div>
+                  {summaryData.recommendation}
+                </div>
+              )}
+
+              {/* Focus Areas */}
+              {summaryData.focusAreas && summaryData.focusAreas.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Key Focus Areas</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {summaryData.focusAreas.map((area, idx) => (
+                      <span key={idx} className="px-3 py-1.5 bg-surface-700 border border-surface-500 text-gray-200 rounded-lg text-xs font-medium">
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Trending Topics & Interview Pattern Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {summaryData.trendingTopics && summaryData.trendingTopics.length > 0 && (
+                  <div className="p-4 bg-surface-700/40 border border-surface-600 rounded-xl">
+                    <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Trending Topics</h4>
+                    <div className="space-y-2">
+                      {summaryData.trendingTopics.map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs">
+                          <span className="text-gray-300 font-medium">{item.topic || item}</span>
+                          {item.trend && (
+                            <span className="text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">
+                              {item.trend}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {summaryData.interviewPattern && (
+                  <div className="p-4 bg-surface-700/40 border border-surface-600 rounded-xl">
+                    <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Interview Format</h4>
+                    <ul className="space-y-1.5 text-xs text-gray-300">
+                      {Array.isArray(summaryData.interviewPattern) ? (
+                        summaryData.interviewPattern.map((pat, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block flex-shrink-0" />
+                            <span>{pat}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block flex-shrink-0" />
+                          <span>{summaryData.interviewPattern}</span>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Difficulty Breakdown */}
+              {summaryData.difficultyBreakdown && (
+                <div className="p-3.5 bg-surface-700/30 border border-surface-600 rounded-xl text-xs text-gray-400 leading-relaxed">
+                  <span className="font-semibold text-gray-300">Difficulty Pattern: </span>
+                  {summaryData.difficultyBreakdown}
+                </div>
+              )}
+            </>
+          ) : null}
+        </div>
+      </motion.div>
     </div>
   );
 }
