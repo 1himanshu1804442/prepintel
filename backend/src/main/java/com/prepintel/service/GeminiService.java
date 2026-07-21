@@ -27,11 +27,7 @@ public class GeminiService {
             apiKey = System.getenv("PREPINTEL_AI_KEY");
         }
         if (apiKey == null || apiKey.isBlank()) {
-            // Concatenated fallback to bypass false-positive regex secret scanners while preserving local functionality
-            apiKey = "AQ.Ab8RN" + "6L4JRsOb_uDUSD_SzAIGUr0vMOjFhF86qyC7naGZQmWhA";
-        }
-        if (apiKey == null || apiKey.isBlank()) {
-            return "{\"error\": \"GEMINI_API_KEY not set. Please set it as an environment variable or in application.properties.\"}";
+            return "{\"error\": \"PREPINTEL_AI_KEY not set. Please set it as an environment variable or in application.properties.\"}";
         }
 
         String[] models = {"gemini-2.5-flash", "gemini-2.5-flash-lite"};
