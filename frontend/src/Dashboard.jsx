@@ -191,11 +191,18 @@ export default function App() {
 
   // Fetch companies on mount
   useEffect(() => {
-    fetch(`${API}/companies`).then(r => r.json()).then(setCompanies).catch(() => {});
-    fetch(`${API}/reports/latest`).then(r => r.json()).then(data => {
-      setLatestReports(data);
-      setLastUpdated(new Date());
-    }).catch(() => {});
+    fetch(`${API}/companies`)
+      .then(r => r.json())
+      .then(data => setCompanies(Array.isArray(data) ? data : []))
+      .catch(() => setCompanies([]));
+
+    fetch(`${API}/reports/latest`)
+      .then(r => r.json())
+      .then(data => {
+        setLatestReports(Array.isArray(data) ? data : []);
+        setLastUpdated(new Date());
+      })
+      .catch(() => setLatestReports([]));
   }, []);
 
   // Fetch problems depending on current active tab
@@ -354,6 +361,11 @@ export default function App() {
     return 48;
   }, [safeProblems]);
 
+  // Total community reports: sum of all reportCount values across the problem set
+  const totalReports = useMemo(() => {
+    return safeProblems.reduce((sum, p) => sum + (p?.reportCount || 0), 0);
+  }, [safeProblems]);
+
   // Handle solve toggle
   const handleToggleSolved = useCallback((problemId) => {
     const slugKey = selectedSlug || 'global';
@@ -363,9 +375,10 @@ export default function App() {
 
   // Filtered companies for sidebar
   const filteredCompanies = useMemo(() => {
-    if (!companySearch) return companies;
+    const list = Array.isArray(companies) ? companies : [];
+    if (!companySearch) return list;
     const q = companySearch.toLowerCase();
-    return companies.filter(c => c.name.toLowerCase().includes(q));
+    return list.filter(c => c && c.name && c.name.toLowerCase().includes(q));
   }, [companies, companySearch]);
 
   // "Updated X ago" for live indicator
