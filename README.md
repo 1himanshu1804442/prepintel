@@ -1,89 +1,177 @@
-<video src="./assets/promo_video.mp4" controls="controls" width="100%"></video>
+<div align="center">
 
-# 🎯 PrepIntel Pro — Placement Preparation Intelligence
+# 🎯 PrepIntel
+### **AI-Powered Technical Interview Intelligence & Study Engineering Platform**
 
-PrepIntel Pro is a high-performance, community-driven placement preparation dashboard. It aggregates real-world interview reports to tell candidates exactly which questions are most frequently asked by **84+ top companies** (from Google and Amazon to TCS and Infosys), helping them bypass standard interview filters.
+[![Java](https://img.shields.io/badge/Java-17-orange.svg?style=for-the-badge&logo=java)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-green.svg?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC.svg?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-8E75B2.style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
+[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=for-the-badge)](LICENSE)
 
-Instead of generic preparation, PrepIntel Pro helps students focus on high-yield questions by merging community reports, providing tokenless progress synchronization across three external platforms, and using a custom scheduler to slice remaining work into a day-by-day preparation calendar.
+<br/>
+
+**PrepIntel** is a high-performance placement preparation platform designed to help candidates prepare for technical interviews with data precision. It aggregates real-world interview report data across **84+ top companies** (from Google and Amazon to TCS, Infosys, and Cognizant), incorporates 1,980+ Zerotrac Elo problem difficulty ratings, and features a resilient Gemini AI Coach.
+
+[Features](#-key-features) • [Architecture](#-system-architecture) • [Getting Started](#-getting-started) • [Bug Log](#-technical-bug-log)
+
+</div>
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-### 🔄 Tokenless Multi-Source Sync Engine
-Check off solved problems instantly without entering passwords or dealing with complex OAuth loops. PrepIntel Pro implements a background synchronization service that maps progress from three sources:
-*   **LeetCode GraphQL Sync:** Cross-references your public LeetCode profile using GraphQL to fetch recent Accepted (AC) submissions.
-*   **GitHub LeetHub Scanner:** Leverages the **GitHub Git Trees API** (`/git/trees/{branch}?recursive=1`) to recursively scan public repositories (like those synced via LeetHub/LeetSync) and dynamically extract solved problem slugs.
-*   **Codeforces Sync:** Queries the Codeforces API to sync solved competitive programming questions in real-time.
+### 🏢 **1. Company War Rooms & Frequency Ranking**
+- Select target companies to view exact historical LeetCode interview questions.
+- Ranked by **Most Asked Frequency** and categorized by interview round (Online Assessment, Technical Round 1/2, HR).
+- Filter 1,000+ problems in real-time with **0ms UI lag** using `useMemo` React hooks.
 
-### 📅 Algorithmic Study Plan Generator
-Enter your exam date and your daily prep hours. The backend scheduling engine:
-1.  Fetches all historical interview questions for the target company.
-2.  Excludes questions you have already solved (imported via Sync).
-3.  Categorizes the remaining questions by difficulty (Easy, Medium, Hard).
-4.  Algorithmically distributes the highest-frequency unsolved questions into a custom, day-by-day schedule returned to the frontend.
+### 📈 **2. Zerotrac Contest Elo Difficulty Ratings**
+- Replaces generic "Easy / Medium / Hard" tags with precise LeetCode contest Elo ratings (e.g. *1540 Elo*).
+- Enables candidates to target questions matching exact skill boundaries.
 
-### 🧠 Gemini 2.5 Flash AI Integrations
-*   **AI Company Summaries:** Feeds aggregated interview report data for a company to Gemini and returns structured JSON overviews detailing typical Online Assessment (OA) patterns, key focus areas, and recommended preparation timeframes.
-*   **AI Hint Coach:** Provides conceptual, step-by-step hints on-demand for coding questions to guide users toward the optimal time complexity ($O(1)$ space/time intuition) without spoiling the actual code.
+### 🧠 **3. Resilient Gemini 2.5 AI Coach & Hints**
+- **AI Interview Coach**: Generates structured, high-yield preparation overviews detailing OA format, target focus areas, and recommended prep time.
+- **AI Hint Coach**: Provides progressive, step-by-step conceptual hints without spoiling code.
+- **Resilience Architecture**: Features exponential retry backoff and a 2-tier fallback chain (`gemini-2.5-flash` → `gemini-2.5-flash-lite`) to guarantee high availability under free-tier traffic load spikes.
 
-### 📊 Rich Placement Analytics & Insights
-*   **Difficulty Distribution:** Clean breakdown metrics for Easy, Medium, and Hard company questions.
-*   **Top Topic Trends:** Automatically computes and displays topic weights (e.g. *Dynamic Programming: 24%*, *Graphs: 18%*) across all indexed questions.
-*   **Live Community Feed:** A real-time sidebar displaying recent placement reports logged by the community, complete with round tags (OA, Technical, HR) and verification badges.
+### 📅 **4. Algorithmic Study Plan Generator**
+- Enter your target exam date and daily available study hours.
+- A deterministic Java algorithm filters out your solved problems, splits unsolved questions by difficulty, and builds a customized day-by-day roadmap.
+
+### 🔄 **5. Multi-Source Tokenless Sync Engine**
+- **LeetCode GraphQL API**: Imports public Accepted (AC) submissions without requiring password authentication.
+- **GitHub Git Trees API**: Recursively scans repositories (`/git/trees/{branch}?recursive=1`) to import solved slugs synced via LeetHub/LeetSync.
+- **Codeforces API**: Live sync of solved competitive programming problems.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client["Frontend (React + Tailwind + Framer Motion)"]
+        UI["Dashboard & Modals"]
+        SyncModule["Multi-Source Sync Engine"]
+    end
+
+    subgraph Server["Backend (Java 17 + Spring Boot 3.2)"]
+        API["JobController REST Endpoints"]
+        GeminiSvc["GeminiService (HttpClient + Fallback Chain)"]
+        Planner["Algorithmic Study Plan Generator"]
+        Seeder["DatabaseSeeder (Zerotrac & Reports)"]
+    end
+
+    subgraph Data["Persistence & AI Services"]
+        DB[("PostgreSQL Database")]
+        GeminiAPI["Google Gemini 2.5 API"]
+        ExternalAPIs["LeetCode GraphQL / GitHub Trees API"]
+    end
+
+    UI -->|REST Requests| API
+    API -->|Read/Write| DB
+    API -->|Prompt Request| GeminiSvc
+    GeminiSvc -->|X-goog-api-key Auth| GeminiAPI
+    SyncModule -->|Fetch Progress| ExternalAPIs
+    Seeder -->|Seed Schema & Data| DB
+```
 
 ---
 
 ## 🛠️ Technology Stack
 
-*   **Frontend:** React (Vite), Tailwind CSS, Framer Motion (smooth transition physics), Lucide React (Icons).
-*   **Backend:** Java Spring Boot, Spring Data JPA, Java HttpClient (asynchronous GraphQL & REST clients).
-*   **Database:** PostgreSQL (with indexed foreign keys for sub-50ms query responses).
-*   **AI Model:** Google Generative AI (Gemini 2.5 Flash).
+| Domain | Technologies Used |
+| :--- | :--- |
+| **Frontend** | React 18, Tailwind CSS, Framer Motion, Lucide Icons, Vite |
+| **Backend** | Java 17, Spring Boot 3.2, Spring Data JPA, Java Native `HttpClient` |
+| **Database** | PostgreSQL 16 (Indexed foreign keys & composite indexes) |
+| **AI Integration** | Google Gemini 2.5 REST API (`gemini-2.5-flash` & `gemini-2.5-flash-lite`) |
+| **DevOps / Tooling** | Maven, PowerShell Process Automation, Git |
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-*   Node.js (v18+)
-*   Java 17+
-*   PostgreSQL
-*   Gemini API Key
-
-### Backend Configuration
-
-1.  Create the database:
-    ```sql
-    CREATE DATABASE prepintel;
-    ```
-2.  Set the environment variables (e.g. in your OS environment, `.env`, or IDE configuration):
-    ```bash
-    SPRING_DATASOURCE_PASSWORD=your_db_password
-    GEMINI_API_KEY=your_gemini_api_key
-    ```
-3.  Run the Spring Boot application. On startup, the application auto-seeds the tables (`schema.sql` and `data.sql`), loading 84+ companies, 1,980+ LeetCode rating mappings, and thousands of historical interview reports.
-
-### Frontend Configuration
-
-1.  Navigate to the frontend directory:
-    ```bash
-    cd frontend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-4.  Open `http://localhost:3000` in your browser.
+### **Prerequisites**
+- Node.js (v18+)
+- Java 17+
+- PostgreSQL
+- Gemini API Key ([Get Key Here](https://aistudio.google.com/))
 
 ---
 
-## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
+### 1. Database Setup
+```sql
+CREATE DATABASE prepintel;
+```
+
+### 2. Backend Setup
+1. Open terminal in the `backend` directory:
+   ```bash
+   cd backend
+   ```
+2. Set your PostgreSQL password and Gemini API Key:
+   ```powershell
+   $env:SPRING_DATASOURCE_PASSWORD="your_postgres_password"
+   $env:PREPINTEL_AI_KEY="your_gemini_api_key"
+   ```
+3. Run the Spring Boot application:
+   ```bash
+   mvn spring-boot:run
+   ```
+   *The database will auto-seed 84+ companies, 1,980+ Zerotrac ratings, and interview reports on startup.*
+
+---
+
+### 3. Frontend Setup
+1. Open terminal in the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Launch development server:
+   ```bash
+   npm run dev
+   ```
+4. Open **`http://localhost:3000`** in your browser.
+
+---
+
+## 📂 Project Structure
+
+```text
+prepintel/
+├── backend/
+│   ├── src/main/java/com/prepintel/
+│   │   ├── controller/      # REST API Endpoints (JobController, SyncController)
+│   │   ├── entity/          # JPA Entities (Company, Problem, InterviewReport)
+│   │   ├── repository/      # Spring Data Repositories
+│   │   └── service/         # GeminiService (AI API & Fallback), DatabaseSeeder
+│   └── src/main/resources/
+│       ├── application.properties
+│       ├── schema.sql       # PostgreSQL DDL with Indexes
+│       └── data.sql         # Company & Problem Initial Data
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # UI Cards, Modals, Badges
+│   │   ├── Dashboard.jsx    # Core Interactive Intelligence Dashboard
+│   │   └── index.css        # Glassmorphism & SaaS Design System
+└── BUG_LOG.md               # Technical Troubleshooting & Bug Fix Records
+```
+
+---
+
+## 📖 Technical Bug Log
+
+For a detailed breakdown of real technical bugs solved during development (Spring Boot property precedence, LLM 503 resilience, JSON sanitization, and `useMemo` optimizations), see [BUG_LOG.md](BUG_LOG.md).
+
+---
 
 ## 📝 License
-This project is licensed under the MIT License.
+
+Distributed under the MIT License. See `LICENSE` for more information.
