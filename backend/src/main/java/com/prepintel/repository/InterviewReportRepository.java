@@ -11,19 +11,12 @@ import java.util.List;
 @Repository
 public interface InterviewReportRepository extends JpaRepository<InterviewReport, Long> {
 
-    @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
-           "WHERE r.company.slug = :companySlug AND (" +
-           "  r.timeframe = :timeframe OR " +
-           "  (:timeframe = 'all_time') OR " +
-           "  (:timeframe = '3_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months')) OR " +
-           "  (:timeframe = '6_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months' OR r.timeframe = '6_months'))" +
-           ") " +
-           "GROUP BY r.problem " +
-           "ORDER BY SUM(r.reportCount) DESC")
-    List<Object[]> findProblemsByCompanyAndTimeframe(
-            @Param("companySlug") String companySlug,
-            @Param("timeframe") String timeframe
-    );
+    @Query("SELECT r FROM InterviewReport r JOIN FETCH r.company JOIN FETCH r.problem " +
+           "WHERE r.company.slug = :companySlug")
+    List<InterviewReport> findRankingReportsByCompanySlug(@Param("companySlug") String companySlug);
+
+    @Query("SELECT r FROM InterviewReport r JOIN FETCH r.company JOIN FETCH r.problem")
+    List<InterviewReport> findAllRankingReports();
 
     boolean existsByCompanyIdAndProblemIdAndSourceAndTimeframe(
             Long companyId, Long problemId, String source, String timeframe
@@ -48,13 +41,6 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
     @Query("SELECT DISTINCT r.problem.id, r.problem.topics FROM InterviewReport r " +
            "WHERE r.company.slug = :companySlug AND r.problem.topics IS NOT NULL AND r.problem.topics <> ''")
     List<Object[]> getTopicsForCompany(@Param("companySlug") String companySlug);
-
-    // Get global problems sorted by overall frequency
-    @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
-           "WHERE r.timeframe = 'all_time' " +
-           "GROUP BY r.problem " +
-           "ORDER BY SUM(r.reportCount) DESC")
-    List<Object[]> findGlobalProblemsOrderedByReportCount();
 
     // Get global difficulty distribution
     @Query("SELECT r.problem.difficulty, COUNT(DISTINCT r.problem) FROM InterviewReport r GROUP BY r.problem.difficulty")

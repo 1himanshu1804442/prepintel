@@ -904,9 +904,14 @@ export default function App() {
                       ★ {inspectProblem.rating}
                     </span>
                   )}
-                  <span className="text-xs text-gray-500">Reported {inspectProblem.reportCount}×</span>
+                  <span className="text-xs text-gray-500">Reported {inspectProblem.reportCount}× ({inspectProblem.recentReportCount || 0} recent)</span>
                   {inspectProblem.acceptanceRate && (
                     <span className="text-xs text-gray-500">· {Number(inspectProblem.acceptanceRate).toFixed(1)}% acceptance</span>
+                  )}
+                  {inspectProblem.dataFreshnessLabel && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${inspectProblem.lastVerifiedAt ? 'bg-success/15 text-success border border-success/30' : 'bg-surface-700 text-gray-400 border border-surface-600'}`}>
+                      {inspectProblem.dataFreshnessLabel}
+                    </span>
                   )}
                 </div>
 

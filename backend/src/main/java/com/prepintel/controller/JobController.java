@@ -7,11 +7,13 @@ import com.prepintel.repository.CompanyRepository;
 import com.prepintel.repository.InterviewReportRepository;
 import com.prepintel.repository.ProblemRepository;
 import com.prepintel.service.GeminiService;
+import com.prepintel.service.InterviewReportRankingService;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,15 +26,18 @@ public class JobController {
     private final ProblemRepository problemRepository;
     private final InterviewReportRepository reportRepository;
     private final GeminiService geminiService;
+    private final InterviewReportRankingService rankingService;
 
     public JobController(CompanyRepository companyRepository,
                          ProblemRepository problemRepository,
                          InterviewReportRepository reportRepository,
-                         GeminiService geminiService) {
+                         GeminiService geminiService,
+                         InterviewReportRankingService rankingService) {
         this.companyRepository = companyRepository;
         this.problemRepository = problemRepository;
         this.reportRepository = reportRepository;
         this.geminiService = geminiService;
+        this.rankingService = rankingService;
     }
 
     // 1. Get List of all Companies (with problem counts)
@@ -64,35 +69,14 @@ public class JobController {
     @GetMapping("/companies/{slug}/problems")
     public ResponseEntity<List<Map<String, Object>>> getProblemsByCompany(
             @PathVariable String slug,
-            @RequestParam(defaultValue = "all_time") String timeframe) {
+            @RequestParam(defaultValue = "all_time") String timeframe,
+            @RequestParam(defaultValue = "all") String role) {
 
-        List<Object[]> results = reportRepository.findProblemsByCompanyAndTimeframe(slug, timeframe);
-
-        // Find max report count for relative frequency
-        long maxCount = results.isEmpty() ? 1 : (Long) results.get(0)[1];
-
-        List<Map<String, Object>> response = results.stream().map(row -> {
-            Problem p = (Problem) row[0];
-            Long count = (Long) row[1];
-
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", p.getId());
-            map.put("leetcodeId", p.getLeetcodeId());
-            map.put("title", p.getTitle());
-            map.put("titleSlug", p.getTitleSlug());
-            map.put("difficulty", p.getDifficulty());
-            map.put("acceptanceRate", p.getAcceptanceRate());
-            map.put("url", p.getUrl());
-            map.put("topics", p.getTopics());
-            map.put("rating", p.getRating());
-            map.put("reportCount", count);
-            // Realistic Non-Linear Relative Frequency Percentage (15% to 98% range)
-            double ratio = (double) count / Math.max(1L, maxCount);
-            long conf = Math.min(98, Math.max(15, Math.round(15 + 83 * Math.pow(ratio, 0.75))));
-
-            map.put("frequencyPercent", conf);
-            return map;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> response = rankingService.rank(
+                        reportRepository.findRankingReportsByCompanySlug(slug), timeframe, role)
+                .stream()
+                .map(this::toProblemResponse)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
@@ -183,7 +167,7 @@ public class JobController {
             return ResponseEntity.ok(result);
         }
 
-        List<Object[]> problems = reportRepository.findProblemsByCompanyAndTimeframe(slug, "all_time");
+        List<Object[]> problems = rankedCompanyProblems(slug, "all_time");
 
         StringBuilder context = new StringBuilder();
         context.append("Company: ").append(company.getName()).append("\n");
@@ -255,7 +239,7 @@ public class JobController {
         Company company = companyRepository.findBySlug(slug)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found: " + slug));
 
-        List<Object[]> problems = reportRepository.findProblemsByCompanyAndTimeframe(slug, "all_time");
+        List<Object[]> problems = rankedCompanyProblems(slug, "all_time");
 
         int days = Math.max(1, request.getDaysRemaining());
         int solved = request.getSolvedCount();
@@ -444,6 +428,13 @@ public class JobController {
                         .source("User Submission")
                         .timeframe("all_time")
                         .round(request.getRound() != null ? request.getRound() : "OA")
+                        .reportedAt(request.getReportedAt())
+                        .role(defaultValue(request.getRole(), "Unknown"))
+                        .batchYear(request.getBatchYear())
+                        .driveType(defaultValue(request.getDriveType(), "Unknown"))
+                        .sourceUrl(request.getSourceUrl())
+                        .sourceType("CANDIDATE_SUBMISSION")
+                        .verificationStatus("PENDING_REVIEW")
                         .notes(request.getNotes())
                         .build()
         );
@@ -484,6 +475,13 @@ public class JobController {
                                 .source(req.getSource() != null ? req.getSource() : "Reddit")
                                 .timeframe("all_time")
                                 .round(req.getRound() != null ? req.getRound() : "OA")
+                                .reportedAt(req.getReportedAt())
+                                .role(defaultValue(req.getRole(), "Unknown"))
+                                .batchYear(req.getBatchYear())
+                                .driveType(defaultValue(req.getDriveType(), "Unknown"))
+                                .sourceUrl(req.getSourceUrl())
+                                .sourceType(defaultValue(req.getSourceType(), "COMMUNITY_IMPORT"))
+                                .verificationStatus(defaultValue(req.getVerificationStatus(), "PENDING_REVIEW"))
                                 .notes(req.getNotes())
                                 .build()
                 );
@@ -507,7 +505,10 @@ public class JobController {
             map.put("url", r.getProblem().getUrl());
             map.put("round", r.getRound());
             map.put("notes", r.getNotes());
-            map.put("dateReported", r.getDateReported());
+            map.put("reportedAt", r.getReportedAt());
+            map.put("recordedAt", r.getDateReported());
+            map.put("sourceUrl", r.getSourceUrl());
+            map.put("verificationStatus", r.getVerificationStatus());
             return map;
         }).collect(Collectors.toList());
         return ResponseEntity.ok(response);
@@ -516,29 +517,11 @@ public class JobController {
     // 10. Get Global Problems Ranked by Frequency
     @GetMapping("/problems")
     public ResponseEntity<List<Map<String, Object>>> getGlobalProblems() {
-        List<Object[]> results = reportRepository.findGlobalProblemsOrderedByReportCount();
-        long maxCount = results.isEmpty() ? 1 : (Long) results.get(0)[1];
-
-        List<Map<String, Object>> response = results.stream().map(row -> {
-            Problem p = (Problem) row[0];
-            Long count = (Long) row[1];
-
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", p.getId());
-            map.put("leetcodeId", p.getLeetcodeId());
-            map.put("title", p.getTitle());
-            map.put("titleSlug", p.getTitleSlug());
-            map.put("difficulty", p.getDifficulty());
-            map.put("acceptanceRate", p.getAcceptanceRate());
-            map.put("url", p.getUrl());
-            map.put("topics", p.getTopics());
-            map.put("rating", p.getRating());
-            map.put("reportCount", count);
-            long baseConf = Math.round((count * 95.0) / maxCount);
-            long conf = Math.min(98, baseConf + (maxCount > 20 ? 3 : 0));
-            map.put("frequencyPercent", conf);
-            return map;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> response = rankingService.rank(
+                        reportRepository.findAllRankingReports(), "all_time", "all")
+                .stream()
+                .map(this::toProblemResponse)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
@@ -591,11 +574,48 @@ public class JobController {
         return ResponseEntity.ok(response);
     }
 
+    private List<Object[]> rankedCompanyProblems(String slug, String timeframe) {
+        return rankingService.rank(reportRepository.findRankingReportsByCompanySlug(slug), timeframe, "all")
+                .stream()
+                .map(ranking -> new Object[]{ranking.problem(), (long) ranking.reportCount()})
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Object> toProblemResponse(InterviewReportRankingService.RankedProblem ranking) {
+        Problem problem = ranking.problem();
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", problem.getId());
+        map.put("leetcodeId", problem.getLeetcodeId());
+        map.put("title", problem.getTitle());
+        map.put("titleSlug", problem.getTitleSlug());
+        map.put("difficulty", problem.getDifficulty());
+        map.put("acceptanceRate", problem.getAcceptanceRate());
+        map.put("url", problem.getUrl());
+        map.put("topics", problem.getTopics());
+        map.put("rating", problem.getRating());
+        map.put("reportCount", ranking.reportCount());
+        map.put("recentReportCount", ranking.recentReportCount());
+        map.put("frequencyPercent", ranking.relativeFrequency());
+        map.put("weightedScore", Math.round(ranking.weightedScore() * 100.0) / 100.0);
+        map.put("lastVerifiedAt", ranking.lastVerifiedAt());
+        map.put("dataFreshnessLabel", ranking.dataFreshnessLabel());
+        return map;
+    }
+
+    private String defaultValue(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
     @Data
     public static class UserReportRequest {
         private String companySlug;
         private Integer leetcodeId;
         private String round;
+        private LocalDate reportedAt;
+        private String role;
+        private Integer batchYear;
+        private String driveType;
+        private String sourceUrl;
         private String notes;
     }
 
@@ -609,6 +629,13 @@ public class JobController {
         private BigDecimal acceptanceRate;
         private String source;
         private String round;
+        private LocalDate reportedAt;
+        private String role;
+        private Integer batchYear;
+        private String driveType;
+        private String sourceUrl;
+        private String sourceType;
+        private String verificationStatus;
         private String notes;
     }
 

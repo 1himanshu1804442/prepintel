@@ -3,6 +3,7 @@ package com.prepintel.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,6 +39,35 @@ public class InterviewReport {
 
     @Column(name = "date_reported", insertable = false, updatable = false)
     private LocalDateTime dateReported;
+
+    /** The date the candidate actually encountered this question; null means legacy/historical data. */
+    @Column(name = "reported_at")
+    private LocalDate reportedAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String role = "Unknown";
+
+    @Column(name = "batch_year")
+    private Integer batchYear;
+
+    @Column(name = "drive_type", nullable = false)
+    @Builder.Default
+    private String driveType = "Unknown";
+
+    @Column(name = "source_url", length = 1000)
+    private String sourceUrl;
+
+    @Column(name = "source_type", nullable = false)
+    @Builder.Default
+    private String sourceType = "LEGACY_IMPORT";
+
+    @Column(name = "verification_status", nullable = false)
+    @Builder.Default
+    private String verificationStatus = "UNVERIFIED";
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
 
     @Column(name = "report_count", nullable = false)
     @Builder.Default
