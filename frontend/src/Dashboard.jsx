@@ -794,72 +794,85 @@ export default function App() {
                   ) : filteredProblems.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 text-xs">No questions match your filters.</div>
                   ) : (
-                    filteredProblems.slice(0, 150).map((p, idx) => {
-                      const solved = isSolved(solvedMap, selectedSlug, p.id);
-                      return (
-                        <div
-                          key={p.id}
-                          className={`grid grid-cols-[40px_1fr_100px_60px_140px_70px_90px] gap-4 px-6 py-5 text-[13px] items-center card-row group ${solved ? 'opacity-50' : ''}`}
-                        >
-                          {/* LC ID */}
-                          <span className="text-gray-600 font-mono text-[11px]">#{p.leetcodeId}</span>
+                    <AnimatePresence mode="popLayout">
+                      {filteredProblems.slice(0, 150).map((p, idx) => {
+                        const solved = isSolved(solvedMap, selectedSlug, p.id);
+                        return (
+                          <motion.div
+                            key={p.id}
+                            layout
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.96 }}
+                            transition={{ duration: 0.2, delay: Math.min(idx * 0.01, 0.12) }}
+                            whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', x: 2 }}
+                            className={`grid grid-cols-[40px_1fr_100px_60px_140px_70px_90px] gap-4 px-6 py-5 text-[13px] items-center card-row group ${solved ? 'opacity-50' : ''}`}
+                          >
+                            {/* LC ID */}
+                            <span className="text-gray-600 font-mono text-[11px]">#{p.leetcodeId}</span>
 
-                          {/* Title + Topics */}
-                          <div className="min-w-0">
-                            <button
-                              onClick={() => { setInspectProblem(p); setAiHint(null); }}
-                              className={`text-left truncate font-medium hover:text-accent-light transition-colors block w-full ${solved ? 'line-through text-gray-500' : 'text-gray-200'}`}
-                            >
-                              {p.title}
-                            </button>
-                            {p.topics && (
-                              <div className="flex gap-1 mt-0.5 flex-wrap">
-                                {p.topics.split(',').slice(0, 3).map((t, i) => (
-                                  <TopicBadge key={i} topic={t.trim()} />
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                            {/* Title + Topics */}
+                            <div className="min-w-0">
+                              <button
+                                onClick={() => { setInspectProblem(p); setAiHint(null); }}
+                                className={`text-left truncate font-medium hover:text-accent-light transition-colors block w-full cursor-pointer ${solved ? 'line-through text-gray-500' : 'text-gray-200'}`}
+                              >
+                                {p.title}
+                              </button>
+                              {p.topics && (
+                                <div className="flex gap-1 mt-0.5 flex-wrap">
+                                  {p.topics.split(',').slice(0, 3).map((t, i) => (
+                                    <TopicBadge key={i} topic={t.trim()} />
+                                  ))}
+                                </div>
+                              )}
+                              {p.dataFreshnessLabel && (
+                                <span className={`inline-block mt-1 text-[9px] font-medium ${p.lastVerifiedAt ? 'text-success' : 'text-gray-500'}`}>
+                                  {p.dataFreshnessLabel}
+                                </span>
+                              )}
+                            </div>
 
-                          {/* Difficulty */}
-                          <div className="flex flex-col items-start gap-1">
-                            <DiffBadge diff={p.difficulty} />
-                            {p.rating && (
-                              <span className="text-[10px] text-gray-500 font-mono" title="LeetCode Contest Rating">
-                                ★ {p.rating}
-                              </span>
-                            )}
-                          </div>
+                            {/* Difficulty */}
+                            <div className="flex flex-col items-start gap-1">
+                              <DiffBadge diff={p.difficulty} />
+                              {p.rating && (
+                                <span className="text-[10px] text-gray-500 font-mono" title="LeetCode Contest Rating">
+                                  ★ {p.rating}
+                                </span>
+                              )}
+                            </div>
 
-                          {/* LeetCode Link */}
-                          <div className="flex justify-center">
-                            <a href={p.url || `https://leetcode.com/problems/${p.titleSlug}/`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-7 h-7 bg-surface-700 hover:bg-surface-600 rounded-md transition-all border border-surface-500 hover:border-[#FFA116] hover:shadow-[0_0_12px_rgba(255,161,22,0.3)] group-hover:scale-110" title="Solve on LeetCode">
-                              <img src="https://assets.leetcode.com/static_assets/public/icons/favicon-96x96.png" alt="LeetCode" className="w-4 h-4 drop-shadow-md" />
-                            </a>
-                          </div>
+                            {/* LeetCode Link */}
+                            <div className="flex justify-center">
+                              <a href={p.url || `https://leetcode.com/problems/${p.titleSlug}/`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-7 h-7 bg-surface-700 hover:bg-surface-600 rounded-md transition-all border border-surface-500 hover:border-[#FFA116] hover:shadow-[0_0_12px_rgba(255,161,22,0.3)] group-hover:scale-110" title="Solve on LeetCode">
+                                <img src="https://assets.leetcode.com/static_assets/public/icons/favicon-96x96.png" alt="LeetCode" className="w-4 h-4 drop-shadow-md" />
+                              </a>
+                            </div>
 
-                          {/* Frequency */}
-                          <FreqIndicator percent={p.frequencyPercent || 0} count={p.reportCount} />
+                            {/* Frequency */}
+                            <FreqIndicator percent={p.frequencyPercent || 0} count={p.reportCount} />
 
-                          {/* Acceptance */}
-                          <span className="font-mono text-gray-400">{p.acceptanceRate ? `${Number(p.acceptanceRate).toFixed(0)}%` : '—'}</span>
+                            {/* Acceptance */}
+                            <span className="font-mono text-gray-400">{p.acceptanceRate ? `${Number(p.acceptanceRate).toFixed(0)}%` : '—'}</span>
 
-                          {/* Solved toggle */}
-                          <div className="text-center">
-                            <button
-                              onClick={() => handleToggleSolved(p.id)}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all border cursor-pointer ${solved
-                                ? 'bg-success/15 text-success border-success/25 hover:bg-success/25'
-                                : 'bg-surface-700/50 text-gray-500 border border-surface-600 hover:border-gray-400 hover:text-gray-300'
-                              }`}
-                            >
-                              {solved ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-2.5 h-2.5 rounded-full border border-gray-500 inline-block" />}
-                              {solved ? 'Solved' : 'Todo'}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
+                            {/* Solved toggle */}
+                            <div className="text-center">
+                              <button
+                                onClick={() => handleToggleSolved(p.id)}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all border cursor-pointer ${solved
+                                  ? 'bg-success/15 text-success border-success/25 hover:bg-success/25'
+                                  : 'bg-surface-700/50 text-gray-500 border border-surface-600 hover:border-gray-400 hover:text-gray-300'
+                                }`}
+                              >
+                                {solved ? <CheckCircle2 className="w-3 h-3" /> : <span className="w-2.5 h-2.5 rounded-full border border-gray-500 inline-block" />}
+                                {solved ? 'Solved' : 'Todo'}
+                              </button>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
                   )}
                 </div>
               </div>
