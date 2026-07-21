@@ -23,15 +23,29 @@ import java.util.stream.Collectors;
 public class SyncController {
 
     private final ProblemRepository problemRepository;
+    private final com.prepintel.service.ScopedDataIngestionService ingestionService;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public SyncController(ProblemRepository problemRepository) {
+    public SyncController(ProblemRepository problemRepository,
+                          com.prepintel.service.ScopedDataIngestionService ingestionService) {
         this.problemRepository = problemRepository;
+        this.ingestionService = ingestionService;
         this.httpClient = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.ALWAYS)
                 .build();
         this.objectMapper = new ObjectMapper();
+    }
+
+    // Trigger Scoped Data Ingestion for 8 Target Companies (Infosys, Cognizant, TCS, Accenture, HCL, Wipro, Capgemini, Amazon)
+    @PostMapping("/ingest-target-companies")
+    public ResponseEntity<?> ingestTargetCompanies() {
+        try {
+            Map<String, Object> result = ingestionService.ingestTargetCompanies();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Ingestion failed: " + e.getMessage());
+        }
     }
 
     // 0. Sync manual copy-pasted LeetCode IDs

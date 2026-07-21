@@ -14,7 +14,8 @@ const COMPANY_ICONS = {
   google: '🟨', microsoft: '🟦', amazon: '🟧', meta: '🔵', apple: '⬜',
   netflix: '🟥', atlassian: '🔷', autodesk: '🟩', adobe: '🔴', uber: '⬛',
   bloomberg: '🟪', flipkart: '🛒', paytm: '💳', meesho: '🩷', cred: '⚪',
-  razorpay: '💙', infosys: '🔹', tcs: '🔸', wipro: '🌿', cognizant: '🔶'
+  razorpay: '💙', infosys: '🔹', tcs: '🔸', wipro: '🌿', cognizant: '🔶',
+  accenture: '💜', capgemini: '🔷', hcltech: '💻'
 };
 
 // ─── localStorage helpers ───

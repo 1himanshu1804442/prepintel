@@ -87,6 +87,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         COMPANIES.put("tcs", "TCS");
         COMPANIES.put("wipro", "Wipro");
         COMPANIES.put("cognizant", "Cognizant");
+        COMPANIES.put("accenture", "Accenture");
+        COMPANIES.put("capgemini", "Capgemini");
+        COMPANIES.put("hcltech", "HCL Technologies");
 
         // OA Patterns
         OA_PATTERNS.put("google", "DSA-Heavy OA: 2 Hard Coding (45 min each), Focus on Graphs & DP");
