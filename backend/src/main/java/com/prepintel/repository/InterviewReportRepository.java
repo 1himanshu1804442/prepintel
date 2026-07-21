@@ -13,13 +13,10 @@ public interface InterviewReportRepository extends JpaRepository<InterviewReport
 
     @Query("SELECT r.problem, SUM(r.reportCount) FROM InterviewReport r " +
            "WHERE r.company.slug = :companySlug AND (" +
-           "  (:timeframe = 'all_time' AND (r.timeframe = 'all_time' OR NOT EXISTS (SELECT 1 FROM InterviewReport r2 WHERE r2.company.id = r.company.id AND r2.problem.id = r.problem.id AND r2.timeframe = 'all_time'))) OR " +
-           "  (:timeframe <> 'all_time' AND (" +
-           "    r.timeframe = :timeframe OR " +
-           "    (:timeframe = '3_months' AND r.timeframe = '30_days') OR " +
-           "    (:timeframe = '6_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months')) OR " +
-           "    (:timeframe = '1_year' AND (r.timeframe = '30_days' OR r.timeframe = '3_months' OR r.timeframe = '6_months'))" +
-           "  ))" +
+           "  r.timeframe = :timeframe OR " +
+           "  (:timeframe = 'all_time') OR " +
+           "  (:timeframe = '3_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months')) OR " +
+           "  (:timeframe = '6_months' AND (r.timeframe = '30_days' OR r.timeframe = '3_months' OR r.timeframe = '6_months'))" +
            ") " +
            "GROUP BY r.problem " +
            "ORDER BY SUM(r.reportCount) DESC")

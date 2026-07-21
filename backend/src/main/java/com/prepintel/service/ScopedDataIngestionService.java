@@ -62,7 +62,7 @@ public class ScopedDataIngestionService {
     }
 
     public Map<String, Object> ingestTargetCompanies() {
-        System.out.println("[PrepIntel Ingestion] Live scraping 8 target tier-3 placement companies from GitHub datasets...");
+        System.out.println("[PrepIntel Ingestion] Ingesting all 5 timeframe CSV datasets across 8 target placement companies...");
 
         int totalProblemsScraped = 0;
         int totalReportsCreated = 0;
@@ -86,27 +86,34 @@ public class ScopedDataIngestionService {
                 companyRepository.save(company);
             }
 
-            // Scrape GitHub Live CSVs
-            int scraped = scrapeCompanyFromGitHub(company, config.folderName);
+            int scraped = scrapeAllTimeframesFromGitHub(company, config.folderName);
             totalProblemsScraped += scraped;
         }
 
-        System.out.println("[PrepIntel Ingestion] Ingestion complete! Scraped & seeded " + totalProblemsScraped + " question mappings across 8 target companies.");
+        System.out.println("[PrepIntel Ingestion] Complete! Ingested " + totalProblemsScraped + " timeframe-distinct reports across 8 target companies.");
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", "SUCCESS");
         result.put("targetCompaniesCount", TARGET_COMPANIES.size());
-        result.put("totalScrapedProblems", totalProblemsScraped);
+        result.put("totalReportsIngested", totalProblemsScraped);
         return result;
     }
 
-    private int scrapeCompanyFromGitHub(Company company, String githubFolder) {
+    private int scrapeAllTimeframesFromGitHub(Company company, String githubFolder) {
         int count = 0;
-        String[] timeframes = {"1.%20Thirty%20Days.csv", "5.%20All.csv"};
+        // Ingest ALL 5 distinct recency timeframe CSV files from GitHub
+        Map<String, String> timeframes = new LinkedHashMap<>();
+        timeframes.put("30_days", "1.%20Thirty%20Days.csv");
+        timeframes.put("3_months", "2.%20Three%20Months.csv");
+        timeframes.put("6_months", "3.%20Six%20Months.csv");
+        timeframes.put("more_than_6_months", "4.%20More%20Than%20Six%20Months.csv");
+        timeframes.put("all_time", "5.%20All.csv");
 
-        for (String file : timeframes) {
-            String timeframeKey = file.contains("Thirty") ? "30_days" : "all_time";
-            String rawUrl = "https://raw.githubusercontent.com/liquidslr/leetcode-company-wise-problems/main/" + githubFolder + "/" + file;
+        for (Map.Entry<String, String> tfEntry : timeframes.entrySet()) {
+            String timeframeKey = tfEntry.getKey();
+            String fileUrlName = tfEntry.getValue();
+
+            String rawUrl = "https://raw.githubusercontent.com/liquidslr/leetcode-company-wise-problems/main/" + githubFolder + "/" + fileUrlName;
 
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -144,10 +151,8 @@ public class ScopedDataIngestionService {
                     int reportCount = Math.max(1, (int) Math.round(parseDouble(freqStr, 10.0)));
 
                     try {
-                        // Find or create Problem with unique LeetCode ID handling
                         Problem problem = findOrCreateProblem(title, titleSlug, difficulty, acceptanceRate, topics);
 
-                        // Save InterviewReport
                         boolean reportExists = reportRepository.existsByCompanyIdAndProblemIdAndSourceAndTimeframe(
                                 company.getId(), problem.getId(), "GitHub Scraper", timeframeKey
                         );
@@ -158,20 +163,20 @@ public class ScopedDataIngestionService {
                                     .problem(problem)
                                     .source("GitHub Scraper")
                                     .timeframe(timeframeKey)
-                                    .round(timeframeKey.equals("30_days") ? "OA" : "Technical")
+                                    .round(timeframeKey.equals("30_days") ? "OA" : timeframeKey.equals("3_months") ? "Technical 1" : "Technical 2")
                                     .reportCount(reportCount)
-                                    .notes("Live GitHub scraped placement question for " + company.getName())
+                                    .notes("Recency-tagged (" + timeframeKey + ") placement question for " + company.getName())
                                     .build();
                             reportRepository.save(report);
                             count++;
                         }
                     } catch (Exception ex) {
-                        // Ignore individual row error and continue parsing next line
+                        // Ignore individual row error and continue
                     }
                 }
 
             } catch (Exception e) {
-                System.err.println("[PrepIntel Ingestion] Error scraping " + company.getName() + " (" + file + "): " + e.getMessage());
+                System.err.println("[PrepIntel Ingestion] Error scraping " + company.getName() + " (" + fileUrlName + "): " + e.getMessage());
             }
         }
         return count;
@@ -183,9 +188,7 @@ public class ScopedDataIngestionService {
             return existingBySlug.get();
         }
 
-        // Generate unique Leetcode ID
-        int baseId = Math.abs(titleSlug.hashCode() % 15000) + 2000;
-        int candidateId = baseId;
+        int candidateId = Math.abs(titleSlug.hashCode() % 15000) + 2000;
         while (problemRepository.findByLeetcodeId(candidateId).isPresent()) {
             candidateId++;
         }
