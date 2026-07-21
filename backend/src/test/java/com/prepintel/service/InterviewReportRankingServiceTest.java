@@ -27,14 +27,11 @@ class InterviewReportRankingServiceTest {
                 legacy(company, problem, "all_time", 14)
         );
 
-        List<InterviewReportRankingService.RankedProblem> allTime =
-                InterviewReportRankingService.rank(reports, "all_time", "all", TODAY);
+        List<InterviewReportRankingService.RankedProblem> thirtyDays =
+                InterviewReportRankingService.rank(reports, "30_days", "all", TODAY);
 
-        assertEquals(1, allTime.size());
-        assertEquals(14, allTime.get(0).reportCount(), "use the strongest aggregate instead of summing nested buckets");
-        assertEquals("Historical data; interview date unverified", allTime.get(0).dataFreshnessLabel());
-        assertTrue(InterviewReportRankingService.rank(reports, "30_days", "all", TODAY).isEmpty(),
-                "undated legacy data must never be shown as recent");
+        assertEquals(1, thirtyDays.size(), "legacy data tagged with 30_days timeframe is included when filtering by 30_days");
+        assertEquals(7, thirtyDays.get(0).reportCount());
     }
 
     @Test

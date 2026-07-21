@@ -32,7 +32,7 @@ public class InterviewReportRankingService {
         Map<String, InterviewReport> uniqueEvidence = new LinkedHashMap<>();
 
         for (InterviewReport report : reports) {
-            if (!matchesRole(report, normalizedRole) || !isInRequestedWindow(report, cutoff)) {
+            if (!matchesRole(report, normalizedRole) || !isInRequestedWindow(report, timeframe, cutoff)) {
                 continue;
             }
             String key = evidenceKey(report);
@@ -61,8 +61,23 @@ public class InterviewReportRankingService {
                 .toList();
     }
 
-    private static boolean isInRequestedWindow(InterviewReport report, LocalDate cutoff) {
-        return cutoff == null || (report.getReportedAt() != null && !report.getReportedAt().isBefore(cutoff));
+    private static boolean isInRequestedWindow(InterviewReport report, String timeframe, LocalDate cutoff) {
+        if (timeframe == null || "all_time".equals(timeframe) || cutoff == null) {
+            return true;
+        }
+        if (report.getReportedAt() != null) {
+            return !report.getReportedAt().isBefore(cutoff);
+        }
+        // Fallback for legacy scraped records with null reportedAt
+        String tf = report.getTimeframe();
+        if (tf == null) return false;
+        return switch (timeframe) {
+            case "30_days" -> "30_days".equals(tf);
+            case "3_months" -> "30_days".equals(tf) || "3_months".equals(tf);
+            case "6_months" -> "30_days".equals(tf) || "3_months".equals(tf) || "6_months".equals(tf);
+            case "1_year" -> !"all_time".equals(tf);
+            default -> true;
+        };
     }
 
     private static boolean matchesRole(InterviewReport report, String normalizedRole) {
