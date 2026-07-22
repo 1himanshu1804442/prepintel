@@ -901,18 +901,17 @@ export default function App() {
                   />
                 </div>
 
-                <div className="flex items-center gap-1 bg-surface-700 rounded-lg p-0.5 border border-surface-500">
+                <div className="flex items-center gap-1 bg-surface-700 rounded-lg p-0.5 border border-surface-500" title="Data Provenance & Source Filter">
                   {[
-                    { label: 'Any', val: 'all_time' },
-                    { label: '30d', val: '30_days' },
-                    { label: '3m', val: '3_months' },
-                    { label: '6m', val: '6_months' },
-                    { label: '1y', val: '1_year' }
+                    { label: 'All Sources', val: 'all_time' },
+                    { label: '30d Recent', val: '30_days' },
+                    { label: '3m Recent', val: '3_months' },
+                    { label: 'GitHub Repos', val: '1_year' }
                   ].map(t => (
                     <button
                       key={t.val}
                       onClick={() => setTimeframe(t.val)}
-                      className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors ${timeframe === t.val ? 'bg-accent/20 text-accent-light' : 'text-gray-500 hover:text-gray-300'}`}
+                      className={`px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-colors ${timeframe === t.val ? 'bg-accent/20 text-accent-light border border-accent/30 font-semibold' : 'text-gray-500 hover:text-gray-300'}`}
                     >
                       {t.label}
                     </button>
