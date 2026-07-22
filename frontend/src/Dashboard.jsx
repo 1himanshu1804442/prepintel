@@ -2130,12 +2130,13 @@ function ArchitectureModal({ onClose }) {
 // DSA KNOWLEDGE GRAPH MODAL
 // ═══════════════════════════════════════════
 // ═══════════════════════════════════════════
-// DYNAMIC DSA KNOWLEDGE GRAPH MODAL
+// ADAPTIVE DSA KNOWLEDGE GRAPH MODAL
 // ═══════════════════════════════════════════
 function KnowledgeGraphModal({ selectedSlug, companyName, onSelectTopic, onClose }) {
   const dragControls = useDragControls();
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedNode, setSelectedNode] = useState(null);
 
   useEffect(() => {
     if (!selectedSlug) return;
@@ -2145,21 +2146,15 @@ function KnowledgeGraphModal({ selectedSlug, companyName, onSelectTopic, onClose
       .then(data => {
         setGraphData(data);
         setLoading(false);
+        if (data?.nodes?.length > 0) {
+          setSelectedNode(data.nodes[0]);
+        }
       })
       .catch(() => setLoading(false));
   }, [selectedSlug]);
 
-  const defaultNodes = [
-    { title: 'Arrays & Strings', count: 45, percentage: 35, sub: 'Foundational — Memory & Indexing', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
-    { title: 'Two Pointers', count: 30, percentage: 22, sub: 'Prereq: Array / String', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' },
-    { title: 'Sliding Window', count: 25, percentage: 18, sub: 'Prereq: Two Pointers', color: 'bg-accent/10 text-accent-light border-accent/30' },
-    { title: 'Tree', count: 35, percentage: 25, sub: 'Hierarchical — Tree Traversal', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
-    { title: 'Graph', count: 40, percentage: 28, sub: 'Complex — Network Traversal', color: 'bg-purple-500/10 text-purple-400 border-purple-500/30' },
-    { title: 'Dynamic Programming', count: 38, percentage: 26, sub: 'Advanced — Optimization', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30' }
-  ];
-
-  const nodes = graphData?.nodes?.length ? graphData.nodes : defaultNodes;
-  const trajectory = graphData?.trajectory?.length ? graphData.trajectory : ['Arrays', 'Two Pointers', 'Trees', 'Graphs', 'Dynamic Programming'];
+  const nodes = graphData?.nodes || [];
+  const trajectory = graphData?.trajectory || [];
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -2178,7 +2173,7 @@ function KnowledgeGraphModal({ selectedSlug, companyName, onSelectTopic, onClose
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-[720px] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden flex flex-col bg-surface-800 modal-glow"
+        className="relative w-[780px] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden flex flex-col bg-surface-800 modal-glow"
       >
         <div 
           onPointerDown={(e) => dragControls.start(e)}
@@ -2190,69 +2185,135 @@ function KnowledgeGraphModal({ selectedSlug, companyName, onSelectTopic, onClose
             </div>
             <div>
               <h3 className="font-display font-bold text-base text-white flex items-center gap-2">
-                {companyName} Knowledge Graph Engine
+                {companyName} Adaptive Knowledge Graph Engine
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  Data-Driven
+                  DAG + Topological Sort
                 </span>
               </h3>
               <p className="text-[11px] text-gray-400">
-                Calculated dynamically from {graphData?.totalProblems || '100+'} interview reports
+                Prioritized using Company Frequency (40%), Unlock Value (20%), User Weakness (30%) & Difficulty Fit (10%)
               </p>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[68vh] space-y-6">
-          <div className="p-3.5 rounded-xl bg-surface-700/50 border border-surface-600 flex items-center justify-between text-xs text-gray-300">
-            <span>Graph nodes and weights are generated dynamically based on actual interview report frequencies for <strong>{companyName}</strong>.</span>
-          </div>
-
+        <div className="p-6 overflow-y-auto max-h-[72vh] space-y-5">
           {loading ? (
             <div className="p-12 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin text-accent" />
-              Computing graph dependencies for {companyName}...
+              Running topological sort and scoring dependencies for {companyName}...
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
-                {nodes.map((node, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      onSelectTopic(node.title);
-                      onClose();
-                    }}
-                    className={`p-4 rounded-xl border text-left flex flex-col justify-between hover:scale-[1.02] transition-all cursor-pointer ${node.color}`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] uppercase font-bold tracking-wider opacity-70">Step {idx + 1}</span>
-                        {node.percentage > 0 && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/30 font-semibold">
-                            {node.percentage}% of OA
+              {/* Dynamic Priority Matrix Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {nodes.slice(0, 6).map((node, idx) => {
+                  const isSelected = selectedNode?.id === node.id || selectedNode?.title === node.title;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedNode(node)}
+                      className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${node.badgeColor || 'bg-surface-700/50 border-surface-600'} ${isSelected ? 'ring-2 ring-accent border-accent' : 'hover:scale-[1.02]'}`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[9px] uppercase font-bold tracking-wider opacity-70">Priority #{idx + 1}</span>
+                          <span className="text-[10px] font-mono font-bold text-amber-300">
+                            {'★'.repeat(node.roiRating || 4)}
                           </span>
-                        )}
+                        </div>
+                        <h4 className="font-bold text-xs text-white truncate">{node.name || node.title}</h4>
                       </div>
-                      <h4 className="font-bold text-sm text-white">{node.title}</h4>
-                    </div>
-                    <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono opacity-80">
-                      <span className="truncate">{node.sub}</span>
-                      <span>→</span>
-                    </div>
-                  </button>
-                ))}
+
+                      <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono opacity-90">
+                        <span className="text-gray-300 truncate">{node.companyFrequencyPercent}% of {companyName} OAs</span>
+                        <span className="text-accent-light font-semibold">Unlocks {node.downstreamUnlocksCount || 2} →</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="p-4 rounded-xl bg-surface-700/40 border border-surface-600 space-y-2">
-                <h4 className="text-xs font-semibold text-white flex items-center justify-between">
-                  <span>{companyName} Interview Learning Trajectory</span>
-                  <span className="text-[10px] text-accent-light font-mono font-normal">Sequential Prerequisite Order</span>
-                </h4>
+              {/* Node Inspector Card (Evidence & Unlock Details) */}
+              {selectedNode && (
+                <div className="p-4 rounded-xl bg-surface-700/60 border border-surface-500 space-y-3">
+                  <div className="flex items-center justify-between border-b border-surface-600 pb-2.5">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-sm text-white">{selectedNode.name || selectedNode.title}</h4>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-accent/20 text-accent-light border border-accent/30 font-mono font-semibold">
+                          Category: {selectedNode.category || 'Core DSA'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{selectedNode.sub || selectedNode.primaryReason}</p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        onSelectTopic(selectedNode.id || selectedNode.title);
+                        onClose();
+                      }}
+                      className="px-3 py-1.5 bg-accent/20 border border-accent/40 text-accent-light text-xs font-semibold rounded-lg hover:bg-accent/30 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      Filter Questions ({selectedNode.totalCompanyQuestions || selectedNode.count || 20}+)
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div className="bg-surface-800/80 p-2.5 rounded-lg border border-surface-600">
+                      <span className="text-[10px] text-gray-400 block">Company Frequency</span>
+                      <span className="text-xs font-bold text-emerald-400 font-mono">
+                        {selectedNode.companyFrequencyPercent}% of {companyName} OAs
+                      </span>
+                    </div>
+
+                    <div className="bg-surface-800/80 p-2.5 rounded-lg border border-surface-600">
+                      <span className="text-[10px] text-gray-400 block">Unlock Value</span>
+                      <span className="text-xs font-bold text-indigo-400 font-mono">
+                        Unlocks {selectedNode.downstreamUnlocksCount || 2} Downstream Topics
+                      </span>
+                    </div>
+
+                    <div className="bg-surface-800/80 p-2.5 rounded-lg border border-surface-600">
+                      <span className="text-[10px] text-gray-400 block">Estimated Study Time</span>
+                      <span className="text-xs font-bold text-amber-300 font-mono">
+                        ~{selectedNode.estimatedHours || 4} Hours
+                      </span>
+                    </div>
+
+                    <div className="bg-surface-800/80 p-2.5 rounded-lg border border-surface-600">
+                      <span className="text-[10px] text-gray-400 block">ROI Rating</span>
+                      <span className="text-xs font-bold text-rose-400 font-mono">
+                        {'★'.repeat(selectedNode.roiRating || 4)} ({selectedNode.priorityScore || 0.85} Priority)
+                      </span>
+                    </div>
+                  </div>
+
+                  {selectedNode.unlocksList && selectedNode.unlocksList.length > 0 && (
+                    <div className="text-[11px] text-gray-300 font-mono bg-black/20 p-2.5 rounded-lg border border-surface-600 flex items-center gap-2">
+                      <span className="text-accent-light font-bold">Unlocks Topics:</span>
+                      {selectedNode.unlocksList.map((u, idx) => (
+                        <span key={idx} className="px-1.5 py-0.5 rounded bg-surface-600 text-gray-200">
+                          ✓ {u}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Topological Trajectory */}
+              <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <h4 className="font-semibold text-white">Suggested Topological Trajectory for {companyName}</h4>
+                  <span className="text-[10px] text-gray-400 font-mono">Prerequisite DAG Order</span>
+                </div>
                 <div className="flex items-center gap-2 text-[11px] text-gray-300 font-mono flex-wrap pt-1">
                   {trajectory.map((t, i) => (
-                    <span key={i} className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded ${i === trajectory.length - 1 ? 'bg-accent/20 text-accent-light border border-accent/40 font-bold' : 'bg-surface-600 text-gray-300'}`}>
+                    <span key={i} className="flex items-center gap-1.5">
+                      <span className={`px-2 py-0.5 rounded text-[11px] ${i === trajectory.length - 1 ? 'bg-accent/20 text-accent-light border border-accent/40 font-bold' : 'bg-surface-600 text-gray-300'}`}>
                         {t}
                       </span>
                       {i < trajectory.length - 1 && <span className="text-gray-500">→</span>}
