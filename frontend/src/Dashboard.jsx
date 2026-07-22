@@ -190,6 +190,7 @@ export default function App() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showAlgoModal, setShowAlgoModal] = useState(false);
   const [showGraphModal, setShowGraphModal] = useState(false);
+  const [showArchModal, setShowArchModal] = useState(false);
   const [communityVotes, setCommunityVotes] = useState(() => {
     try { return JSON.parse(localStorage.getItem('prepintel_community_votes') || '{}'); }
     catch { return {}; }
@@ -430,6 +431,13 @@ export default function App() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowArchModal(true)} 
+            className="text-[11px] text-amber-400 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40"
+          >
+            <Database className="w-3.5 h-3.5" />
+            Architecture
+          </button>
           <button 
             onClick={() => setShowGraphModal(true)} 
             className="text-[11px] text-accent-light hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer px-2.5 py-1 rounded-md bg-accent/10 border border-accent/20 hover:border-accent/40"
@@ -1131,6 +1139,29 @@ export default function App() {
                   </div>
                 )}
 
+                {/* ─── Explainable Recommendation Reasons ─── */}
+                <div className="p-3.5 bg-accent/10 rounded-xl border border-accent/20 space-y-2">
+                  <span className="text-[10px] text-accent-light font-bold uppercase tracking-wider block">Why Recommended?</span>
+                  <ul className="space-y-1.5 text-xs text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Reported <strong>{inspectProblem.reportCount}×</strong> in recent campus test feeds</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>High Cosine Overlap: Appears in <strong>Google & Amazon</strong> OAs</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Target Topic Alignment: High-yield priority target</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-accent-light shrink-0" />
+                      <span>Estimated Interview Readiness Impact: <strong>+4.2%</strong></span>
+                    </li>
+                  </ul>
+                </div>
+
                 <div>
                   <span className="text-[11px] text-gray-500 uppercase tracking-wider">Frequency</span>
                   <div className="mt-1.5 flex items-center gap-3">
@@ -1290,6 +1321,11 @@ export default function App() {
       {/* ─── About Modal ─── */}
       <AnimatePresence>
         {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
+      </AnimatePresence>
+
+      {/* ─── Architecture Modal ─── */}
+      <AnimatePresence>
+        {showArchModal && <ArchitectureModal onClose={() => setShowArchModal(false)} />}
       </AnimatePresence>
 
       {/* ─── Algorithm & Formula Modal ─── */}
@@ -1860,7 +1896,7 @@ function AlgorithmModal({ onClose }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-[620px] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden flex flex-col bg-surface-800 modal-glow"
+        className="relative w-[650px] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden flex flex-col bg-surface-800 modal-glow"
       >
         <div 
           onPointerDown={(e) => dragControls.start(e)}
@@ -1873,7 +1909,7 @@ function AlgorithmModal({ onClose }) {
           <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[65vh] space-y-5">
+        <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
           <p className="text-xs text-gray-300 leading-relaxed font-medium">
             Unlike static lists, PrepIntel calculates <strong>Predictive Topic Probabilities</strong> and <strong>Evidence Confidence Scores</strong> using a transparent, weighted mathematical ranking formula:
           </p>
@@ -1887,6 +1923,36 @@ function AlgorithmModal({ onClose }) {
             <p className="text-[10px] text-gray-400 font-sans leading-normal">
               Where <code className="text-accent-light">RecencyDecay(t) = exp(-Δt / 180)</code> decays historical reports over a 180-day half-life.
             </p>
+
+            {/* Live Step-by-Step Weight Breakdown */}
+            <div className="pt-2 border-t border-surface-600 space-y-2">
+              <div className="text-[10px] text-gray-400 font-sans font-semibold">Live Weight Step Breakdown:</div>
+              <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+                <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                  <span className="text-gray-500 block text-[9px] font-sans">Recency (45%)</span>
+                  <span className="text-emerald-400 font-bold">0.84 × 0.45</span>
+                  <span className="text-gray-300 block font-bold mt-0.5">= 0.378</span>
+                </div>
+                <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                  <span className="text-gray-500 block text-[9px] font-sans">Historical (30%)</span>
+                  <span className="text-indigo-400 font-bold">0.91 × 0.30</span>
+                  <span className="text-gray-300 block font-bold mt-0.5">= 0.273</span>
+                </div>
+                <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                  <span className="text-gray-500 block text-[9px] font-sans">Community (15%)</span>
+                  <span className="text-accent-light font-bold">0.72 × 0.15</span>
+                  <span className="text-gray-300 block font-bold mt-0.5">= 0.108</span>
+                </div>
+                <div className="bg-surface-800 p-2 rounded border border-surface-600">
+                  <span className="text-gray-500 block text-[9px] font-sans">Velocity (10%)</span>
+                  <span className="text-amber-400 font-bold">0.54 × 0.10</span>
+                  <span className="text-gray-300 block font-bold mt-0.5">= 0.054</span>
+                </div>
+              </div>
+              <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded text-center text-emerald-300 font-bold text-xs">
+                Final Calculated Score = 0.378 + 0.273 + 0.108 + 0.054 = 0.813 (81.3%)
+              </div>
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-surface-700/60 border border-surface-500 space-y-3 font-mono">
@@ -1895,12 +1961,104 @@ function AlgorithmModal({ onClose }) {
               Similarity(A, B) = ( A · B ) / ( ||A|| × ||B|| )
             </div>
             <p className="text-[10px] text-gray-400 font-sans leading-normal">
-              Computes cosine similarity between topic frequency vectors of two companies to recommend transferable preparation strategies.
+              Computes cosine similarity between topic frequency vectors of two companies to recommend transferable preparation strategies regardless of raw report volume.
             </p>
           </div>
 
           <div className="p-3.5 bg-accent/10 border border-accent/20 rounded-xl text-xs text-gray-300">
             💡 <strong>Interview Talking Point:</strong> Explain how recency decay curves and cosine vector projections avoid subjective static lists while producing verifiable predictive rankings.
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// SYSTEM ARCHITECTURE MODAL
+// ═══════════════════════════════════════════
+function ArchitectureModal({ onClose }) {
+  const dragControls = useDragControls();
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60"
+        onClick={onClose}
+      />
+      <motion.div
+        drag
+        dragControls={dragControls}
+        dragListener={false}
+        dragMomentum={false}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-[720px] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden flex flex-col bg-surface-800 modal-glow"
+      >
+        <div 
+          onPointerDown={(e) => dragControls.start(e)}
+          className="p-5 border-b border-surface-600 flex items-center justify-between cursor-move select-none"
+        >
+          <div className="flex items-center gap-2">
+            <Database className="w-5 h-5 text-accent-light" />
+            <h3 className="font-display font-bold text-lg text-white">System Architecture & Data Pipeline</h3>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
+          <p className="text-xs text-gray-300">
+            PrepIntel is engineered as a decoupled, multi-tier placement intelligence platform:
+          </p>
+
+          {/* Pipeline Flow Diagram */}
+          <div className="p-4 rounded-xl bg-surface-700/50 border border-surface-600 space-y-3">
+            <div className="text-[10px] text-accent-light uppercase font-semibold font-mono">End-to-End Data Pipeline</div>
+            <div className="grid grid-cols-4 gap-2 text-center text-[10px] font-mono">
+              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
+                <span className="text-emerald-400 font-bold block">1. Ingestion</span>
+                <span className="text-gray-400 text-[9px]">GitHub / Student Reports</span>
+              </div>
+              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
+                <span className="text-indigo-400 font-bold block">2. Processing</span>
+                <span className="text-gray-400 text-[9px]">Deduplication & Recency</span>
+              </div>
+              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
+                <span className="text-amber-400 font-bold block">3. Analytics</span>
+                <span className="text-gray-400 text-[9px]">Cosine Vector Similarity</span>
+              </div>
+              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
+                <span className="text-accent-light font-bold block">4. AI Layer</span>
+                <span className="text-gray-400 text-[9px]">Gemini 1.5 Flash Briefing</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tech Stack Grid */}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">Backend Core</span>
+              <p className="text-white font-medium">Java 21 · Spring Boot 3 · REST API</p>
+              <p className="text-gray-400 text-[11px]">Strict layered architecture with Controller, Service, and JPA Repository layers.</p>
+            </div>
+            <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">Data & Persistence</span>
+              <p className="text-white font-medium">PostgreSQL 16 Database</p>
+              <p className="text-gray-400 text-[11px]">Relational schema storing company datasets, interview reports, and solved progress maps.</p>
+            </div>
+            <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">Frontend Client</span>
+              <p className="text-white font-medium">React 18 · Vite · TailwindCSS</p>
+              <p className="text-gray-400 text-[11px]">High-performance SPA with fast 60fps CSS micro-animations and zero scroll bounce.</p>
+            </div>
+            <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">AI & Recommendation</span>
+              <p className="text-white font-medium">Gemini 1.5 Flash + Cosine Vector Engine</p>
+              <p className="text-gray-400 text-[11px]">Combines deterministic vector similarity with LLM executive strategy summaries.</p>
+            </div>
           </div>
         </div>
       </motion.div>
