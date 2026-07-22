@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import {
   Search, ChevronRight, ExternalLink, Check, X, Sparkles,
   Calendar, BarChart3, Clock, Filter, ArrowUpDown, TrendingUp,
   Zap, Target, BookOpen, Flame, ChevronDown, Loader2, CheckCircle2,
-  Database, MessageSquare, Globe, RefreshCw, Brain
+  Database, MessageSquare, Globe, RefreshCw, Brain, Copy
 } from 'lucide-react';
 
 const API = 'http://localhost:8080/api';
@@ -17,6 +18,10 @@ const COMPANY_ICONS = {
   razorpay: '💙', infosys: '🔹', tcs: '🔸', wipro: '🌿', cognizant: '🔶',
   accenture: '💜', capgemini: '🔷', hcltech: '💻'
 };
+
+const CAMPUS_PRIORITY_SLUGS = new Set([
+  'infosys', 'tcs', 'cognizant', 'accenture', 'amazon', 'wipro', 'capgemini', 'hcltech'
+]);
 
 // ─── localStorage helpers ───
 const getSolved = () => {
@@ -40,11 +45,20 @@ function DiffBadge({ diff }) {
 }
 
 // ─── Topic badge ───
-function TopicBadge({ topic }) {
+function TopicBadge({ topic, onClick }) {
   return (
-    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-600 text-gray-400 border border-surface-500">
+    <button
+      onClick={(e) => {
+        if (onClick) {
+          e.stopPropagation();
+          onClick(topic);
+        }
+      }}
+      className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-600 text-gray-400 border border-surface-500 hover:border-accent/40 hover:text-accent-light transition-colors cursor-pointer"
+      title={`Filter by topic: ${topic}`}
+    >
       {topic}
-    </span>
+    </button>
   );
 }
 
@@ -150,6 +164,7 @@ function TableSkeleton() {
 // MAIN APP
 // ═══════════════════════════════════════════
 export default function App() {
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState(null);
   const [problems, setProblems] = useState([]);
@@ -158,6 +173,7 @@ export default function App() {
   const [solvedMap, setSolvedMap] = useState(getSolved());
   const [searchQuery, setSearchQuery] = useState('');
   const [companySearch, setCompanySearch] = useState('');
+  const [companyCategory, setCompanyCategory] = useState('all'); // 'all' or 'campus'
   const [sortBy, setSortBy] = useState('frequency');
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
   const [filterDiff, setFilterDiff] = useState('All');
@@ -375,11 +391,14 @@ export default function App() {
 
   // Filtered companies for sidebar
   const filteredCompanies = useMemo(() => {
-    const list = Array.isArray(companies) ? companies : [];
+    let list = Array.isArray(companies) ? companies : [];
+    if (companyCategory === 'campus') {
+      list = list.filter(c => c && CAMPUS_PRIORITY_SLUGS.has(c.slug));
+    }
     if (!companySearch) return list;
     const q = companySearch.toLowerCase();
     return list.filter(c => c && c.name && c.name.toLowerCase().includes(q));
-  }, [companies, companySearch]);
+  }, [companies, companySearch, companyCategory]);
 
   // "Updated X ago" for live indicator
   const updatedAgo = timeAgo(lastUpdated.toISOString());
@@ -387,23 +406,34 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       {/* ─── Top Bar ─── */}
-      <header className="glass-panel border-b border-surface-600 px-12 py-5 flex items-center justify-between sticky top-0 z-50">
+      <header className="glass-panel border-b border-surface-600 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <h1 className="font-display font-bold text-xl tracking-tight">PrepIntel</h1>
+          <button 
+            onClick={() => navigate('/')} 
+            className="flex items-center gap-2.5 group cursor-pointer text-left"
+            title="Go to Landing Page"
+          >
+            <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent to-indigo-700 flex items-center justify-center text-white text-xs font-bold shadow-md group-hover:scale-105 transition-transform">
+              🎯
+            </span>
+            <h1 className="font-display font-bold text-xl tracking-tight text-white group-hover:text-accent-light transition-colors">PrepIntel</h1>
+          </button>
           <span className="text-[11px] text-gray-500 font-mono bg-surface-700 px-2.5 py-1 rounded-lg">
             {companies.length} companies
           </span>
         </div>
         <div className="flex items-center gap-3">
-
           <button 
             onClick={() => setShowSyncModal(true)} 
-            className="text-[11px] text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="text-[11px] text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer px-2.5 py-1 rounded-md bg-surface-700/60 border border-surface-600 hover:border-surface-500"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Sync Progress
           </button>
-          <button onClick={() => setShowAboutModal(true)} className="text-[11px] text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors">
+          <button 
+            onClick={() => setShowAboutModal(true)} 
+            className="text-[11px] text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded-md bg-surface-700/60 border border-surface-600 hover:border-surface-500 cursor-pointer"
+          >
             <BookOpen className="w-3.5 h-3.5" />
             About
           </button>
@@ -447,7 +477,7 @@ export default function App() {
             ))}
           </div>
 
-          <div className="p-3 border-b border-surface-600">
+          <div className="p-3 border-b border-surface-600 space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
               <input
@@ -456,9 +486,26 @@ export default function App() {
                 disabled={sidebarTab === 'global'}
                 value={sidebarTab === 'companies' ? companySearch : sidebarTab === 'topics' ? topicSearch : ''}
                 onChange={e => sidebarTab === 'companies' ? setCompanySearch(e.target.value) : setTopicSearch(e.target.value)}
-                className="w-full bg-surface-700 border border-surface-500 rounded-lg pl-9 pr-3 py-2.5 text-xs text-gray-200 placeholder-gray-500 focus:border-accent focus:outline-none transition-colors disabled:opacity-50"
+                className="w-full bg-surface-700 border border-surface-500 rounded-lg pl-9 pr-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:border-accent focus:outline-none transition-colors disabled:opacity-50"
               />
             </div>
+
+            {sidebarTab === 'companies' && (
+              <div className="flex gap-1 bg-surface-800/60 p-0.5 rounded-md border border-surface-600">
+                <button
+                  onClick={() => setCompanyCategory('all')}
+                  className={`flex-1 py-1 text-[10px] font-semibold rounded transition-colors ${companyCategory === 'all' ? 'bg-surface-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  All ({companies.length})
+                </button>
+                <button
+                  onClick={() => setCompanyCategory('campus')}
+                  className={`flex-1 py-1 text-[10px] font-semibold rounded transition-colors flex items-center justify-center gap-1 ${companyCategory === 'campus' ? 'bg-accent/20 text-accent-light border border-accent/30' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  🎯 Campus (8)
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
@@ -815,7 +862,7 @@ export default function App() {
                             {p.topics && (
                               <div className="flex gap-1 mt-1 flex-wrap">
                                 {p.topics.split(',').slice(0, 3).map((t, i) => (
-                                  <TopicBadge key={i} topic={t.trim()} />
+                                  <TopicBadge key={i} topic={t.trim()} onClick={tName => setSearchQuery(tName)} />
                                 ))}
                               </div>
                             )}
@@ -1062,12 +1109,38 @@ export default function App() {
 }
 
 // ═══════════════════════════════════════════
+function FormatAiText({ text }) {
+  if (!text) return null;
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  return (
+    <div className="space-y-2">
+      {lines.map((line, idx) => {
+        if (line.startsWith('*') || line.startsWith('-')) {
+          return (
+            <div key={idx} className="flex items-start gap-2 text-xs text-gray-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-light shrink-0 mt-1.5" />
+              <span>{line.replace(/^[*-\s]+/, '')}</span>
+            </div>
+          );
+        }
+        return (
+          <p key={idx} className="text-xs text-gray-300 leading-relaxed font-medium">
+            {line}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
 // AI SUMMARY MODAL
 // ═══════════════════════════════════════════
 function AiSummaryModal({ companySlug, companyName, onClose }) {
   const [summaryData, setSummaryData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/companies/${companySlug}/ai-summary`)
@@ -1097,6 +1170,15 @@ function AiSummaryModal({ companySlug, companyName, onClose }) {
       });
   }, [companySlug]);
 
+  const handleCopy = () => {
+    if (!summaryData) return;
+    const textToCopy = summaryData.recommendation || JSON.stringify(summaryData, null, 2);
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div
@@ -1117,7 +1199,19 @@ function AiSummaryModal({ companySlug, companyName, onClose }) {
             <Brain className="w-5 h-5 text-accent-light" />
             <h3 className="font-display font-bold text-lg text-white">AI Coach Summary — {companyName}</h3>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2">
+            {summaryData && (
+              <button
+                onClick={handleCopy}
+                className="px-2.5 py-1 rounded bg-surface-700 hover:bg-surface-600 border border-surface-500 text-xs text-gray-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Copy AI Summary"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            )}
+            <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+          </div>
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
@@ -1149,10 +1243,10 @@ function AiSummaryModal({ companySlug, companyName, onClose }) {
               {/* Recommendation / Strategy */}
               {summaryData.recommendation && (
                 <div className="p-4 bg-accent/10 border border-accent/20 rounded-xl text-gray-200 text-sm leading-relaxed">
-                  <div className="flex items-center gap-2 mb-1.5 text-accent-light font-semibold text-xs uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4" /> Preparation Strategy
+                  <div className="flex items-center gap-2 mb-2 text-accent-light font-semibold text-xs uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4" /> Executive Placement Briefing
                   </div>
-                  {summaryData.recommendation}
+                  <FormatAiText text={summaryData.recommendation} />
                 </div>
               )}
 
@@ -1232,7 +1326,8 @@ function AiSummaryModal({ companySlug, companyName, onClose }) {
 // ═══════════════════════════════════════════
 function StudyPlanModal({ companySlug, companyName, problems, solvedMap, onClose }) {
   const [daysRemaining, setDaysRemaining] = useState(14);
-  const [hoursPerDay, setHoursPerDay] = useState(2);
+  const [hoursPerDay, setHoursPerDay] = useState(3);
+  const [targetRole, setTargetRole] = useState('DSE');
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const dragControls = useDragControls();
@@ -1253,6 +1348,8 @@ function StudyPlanModal({ companySlug, companyName, problems, solvedMap, onClose
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         daysRemaining,
+        hoursPerDay,
+        role: targetRole,
         solvedCount,
         solvedLeetcodeIds: companySolvedIds
       }),
@@ -1298,11 +1395,31 @@ function StudyPlanModal({ companySlug, companyName, problems, solvedMap, onClose
         <div className="p-5 overflow-y-auto max-h-[60vh] space-y-4">
           {!plan ? (
             <>
-              <p className="text-xs text-gray-400">Get a personalized day-by-day schedule for <span className="text-white font-semibold">{companyName}</span>, fully customized to focus areas.</p>
+              <p className="text-xs text-gray-400">Get a personalized day-by-day schedule for <span className="text-white font-semibold">{companyName}</span>, fully customized to your targeted role and remaining prep time.</p>
+
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 block font-semibold">Target Placement Role</label>
+                <div className="grid grid-cols-4 gap-1.5 bg-surface-700/50 p-1 rounded-lg border border-surface-600">
+                  {[
+                    { label: 'DSE / Digital', val: 'DSE' },
+                    { label: 'Ninja / SE', val: 'Ninja' },
+                    { label: 'Specialist (SP)', val: 'SP' },
+                    { label: 'General SDE', val: 'SDE' }
+                  ].map(r => (
+                    <button
+                      key={r.val}
+                      onClick={() => setTargetRole(r.val)}
+                      className={`py-1.5 text-[10px] font-semibold rounded transition-colors text-center ${targetRole === r.val ? 'bg-accent/20 text-accent-light border border-accent/30' : 'text-gray-400 hover:text-gray-200'}`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Interview Date</label>
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block font-semibold">Days Remaining</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -1315,7 +1432,7 @@ function StudyPlanModal({ companySlug, companyName, problems, solvedMap, onClose
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block">Hours / Day</label>
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 block font-semibold">Daily Prep Time</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -1324,7 +1441,7 @@ function StudyPlanModal({ companySlug, companyName, problems, solvedMap, onClose
                       min={1} max={12}
                       className="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">hours</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">hrs/day</span>
                   </div>
                 </div>
               </div>
