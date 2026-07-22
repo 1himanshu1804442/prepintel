@@ -27,6 +27,23 @@ public class GeminiService {
             apiKey = System.getenv("PREPINTEL_AI_KEY");
         }
         if (apiKey == null || apiKey.isBlank()) {
+            try {
+                java.nio.file.Path envPath = java.nio.file.Paths.get(".env");
+                if (!java.nio.file.Files.exists(envPath)) {
+                    envPath = java.nio.file.Paths.get("backend/.env");
+                }
+                if (java.nio.file.Files.exists(envPath)) {
+                    java.util.List<String> lines = java.nio.file.Files.readAllLines(envPath);
+                    for (String line : lines) {
+                        if (line.startsWith("PREPINTEL_AI_KEY=")) {
+                            apiKey = line.substring("PREPINTEL_AI_KEY=".length()).trim();
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        if (apiKey == null || apiKey.isBlank()) {
             if (prompt.contains("provide a JSON response with these fields")) {
                 return generateFallbackSummary(prompt);
             } else if (prompt.contains("conceptual, step-by-step hint")) {
@@ -107,20 +124,42 @@ public class GeminiService {
             if (end > start) company = prompt.substring(start, end);
         }
 
+        // Extract topics dynamically from prompt context
+        List<String> foundTopics = new ArrayList<>();
+        if (prompt.contains("Topics: ")) {
+            String[] lines = prompt.split("\n");
+            for (String line : lines) {
+                if (line.contains("Topics: ")) {
+                    String topicStr = line.substring(line.indexOf("Topics: ") + 8);
+                    if (topicStr.endsWith(")")) topicStr = topicStr.substring(0, topicStr.length() - 1);
+                    for (String t : topicStr.split(",")) {
+                        String clean = t.trim();
+                        if (!clean.isEmpty() && !foundTopics.contains(clean)) {
+                            foundTopics.add(clean);
+                        }
+                    }
+                }
+            }
+        }
+
+        String topic1 = !foundTopics.isEmpty() ? foundTopics.get(0) : "Arrays & Strings";
+        String topic2 = foundTopics.size() > 1 ? foundTopics.get(1) : "Trees & Graphs";
+        String topic3 = foundTopics.size() > 2 ? foundTopics.get(2) : "Dynamic Programming";
+
         return """
                 {
-                  "focusAreas": ["Arrays & Hashing", "String Processing", "Tree & Graph Traversals", "Dynamic Programming"],
+                  "focusAreas": ["%s", "%s", "%s"],
                   "interviewPattern": ["OA Round: 2-3 Coding Problems (90 mins)", "Technical Rounds: DSA + System Fundamentals"],
                   "trendingTopics": [
-                    {"topic": "Arrays & Strings", "trend": "↑ Rising"},
-                    {"topic": "Graph BFS/DFS", "trend": "↑ Rising"},
-                    {"topic": "Dynamic Programming", "trend": "↓ Stable"}
+                    {"topic": "%s", "trend": "↑ Rising"},
+                    {"topic": "%s", "trend": "↑ Rising"},
+                    {"topic": "%s", "trend": "↓ Stable"}
                   ],
                   "difficultyBreakdown": "40%% Easy, 45%% Medium, 15%% Hard",
-                  "recommendation": "Focus heavily on high-frequency Array and String questions for %s. Master two-pointer and hash table patterns before advancing to medium DP and Graph BFS/DFS problems.",
+                  "recommendation": "Focus heavily on high-frequency %s and %s questions for %s. Master two-pointer and hash table patterns before advancing to medium DP and Graph BFS/DFS problems.",
                   "estimatedPrepDays": 14
                 }
-                """.formatted(company);
+                """.formatted(topic1, topic2, topic3, topic1, topic2, topic3, topic1, topic2, company);
     }
 
     private String generateFallbackHint(String prompt) {

@@ -219,14 +219,6 @@ public class JobController {
         Company company = companyRepository.findBySlug(slug)
                 .orElseThrow(() -> new IllegalArgumentException("Company not found: " + slug));
 
-        String cachedSummary = aiSummaryCache.get(slug);
-        if (cachedSummary != null) {
-            Map<String, String> result = new LinkedHashMap<>();
-            result.put("company", company.getName());
-            result.put("summary", cachedSummary);
-            return ResponseEntity.ok(result);
-        }
-
         List<Object[]> problems = rankedCompanyProblems(slug, "all_time");
 
         StringBuilder context = new StringBuilder();
