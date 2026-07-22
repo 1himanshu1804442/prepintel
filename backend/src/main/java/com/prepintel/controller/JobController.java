@@ -8,6 +8,7 @@ import com.prepintel.repository.InterviewReportRepository;
 import com.prepintel.repository.ProblemRepository;
 import com.prepintel.service.GeminiService;
 import com.prepintel.service.InterviewReportRankingService;
+import com.prepintel.service.TopicGraphEngine;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
