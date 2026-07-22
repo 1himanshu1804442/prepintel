@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🎯 PrepIntel
-### **AI-Powered Technical Placement Intelligence & Study Engineering Platform**
+### **Data-Driven Placement Intelligence & Technical Interview Platform**
 
 [![Java 17](https://img.shields.io/badge/Java-17-orange.svg?style=for-the-badge&logo=java)](https://www.oracle.com/java/)
 [![Spring Boot 3.2](https://img.shields.io/badge/Spring_Boot-3.2-green.svg?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
@@ -13,9 +13,9 @@
 
 <br/>
 
-**PrepIntel** is an intelligent placement analytics engine that replaces static company sheets with **live, data-driven interview intelligence**. It ingests historical interview data across **84+ top technology companies** (from Google and Amazon to TCS, Infosys, and Cognizant), normalizes datasets, applies a **4-signal confidence scoring algorithm**, and builds **adaptive topological learning trajectories** to maximize student placement outcomes.
+**PrepIntel** is a high-precision placement engineering platform that replaces static question lists with **data-driven interview analytics**. It ingests historical interview report data across **84+ top technology companies** (from Google and Amazon to TCS, Infosys, and Cognizant), applies a **4-signal mathematical confidence formula**, and computes **topological learning trajectories** using Directed Acyclic Graphs (DAGs).
 
-[Architecture](#-system-architecture) • [Star Innovations](#-star-engineering-innovations) • [API Reference](#-api-endpoints) • [Getting Started](#-getting-started) • [Bug Log](BUG_LOG.md)
+[Architecture](#-system-architecture) • [Engineering Mechanics](#-star-engineering-innovations) • [Terminology Boundary](#-precise-engineering-terminology-boundary) • [API Reference](#-api-reference) • [Getting Started](#-getting-started)
 
 </div>
 
@@ -130,6 +130,20 @@ flowchart TD
     Seeder -->|Fetch Elo Ratings| Zerotrac
     Seeder -->|Scrape Datasets| GitHubScraper
 ```
+
+---
+
+## 🔍 Precise Engineering Terminology Boundary
+
+To maintain technical credibility during interviews and architecture reviews, PrepIntel explicitly separates **Deterministic Algorithms & Graph Theory** from **Generative AI LLM Services**:
+
+| Subsystem | Underlying Engineering Mechanics | Accurate Terminology |
+|---|---|---|
+| **Question Confidence Engine** | 4-Signal Formula: Log-Normalized Frequency, Exponential Decay ($T_{1/2}=180\text{d}$), Verification Ratio, Shannon Entropy | **Mathematical Scoring Formula** *(Deterministic Statistics)* |
+| **Topic Learning Order** | Directed Acyclic Graph (DAG) + Topological Sort + Out-Degree Unlock Counting | **Topological Graph Engine** *(Graph Algorithms)* |
+| **Difficulty Calibration** | 1,980+ LeetCode Contest Elo Mappings derived from Zerotrac Data | **Objective Contest Elo Rating** *(Data Calibration)* |
+| **Study Schedule Planner** | Interleaved Difficulty Distribution & Filter Allocation Algorithm | **Deterministic Schedule Planner** *(Algorithmic Allocation)* |
+| **Company Overviews & Hints** | Google Gemini 2.5 REST API with 2-Tier Fallback (`flash` → `flash-lite`) | **Generative LLM AI Coach** *(Generative AI)* |
 
 ---
 
