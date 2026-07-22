@@ -991,7 +991,46 @@ export default function App() {
                   {loadingProblems ? (
                     <TableSkeleton />
                   ) : filteredProblems.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 text-xs">No questions match your filters.</div>
+                    <div className="p-12 text-center flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-surface-700/60 border border-surface-500 flex items-center justify-center text-accent-light mb-3">
+                        <Clock className="w-6 h-6 opacity-80" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-gray-200 mb-1">
+                        {timeframe === '30_days' ? 'No reports detected in the last 30 days' : timeframe === '3_months' ? 'No reports detected in the last 3 months' : 'No questions match your current filters'}
+                      </h4>
+                      <p className="text-xs text-gray-400 max-w-md mb-4 leading-relaxed">
+                        {timeframe === '30_days' || timeframe === '3_months'
+                          ? 'This specific timeframe requires timestamped candidate reports. You can view verified open-source historical questions or log a recent OA experience yourself.'
+                          : 'Try resetting your search query, difficulty filters, or selecting a different company from the sidebar.'}
+                      </p>
+                      <div className="flex gap-2">
+                        {(timeframe === '30_days' || timeframe === '3_months') && (
+                          <>
+                            <button
+                              onClick={() => setTimeframe('all_time')}
+                              className="px-3.5 py-1.5 bg-accent/20 border border-accent/40 text-accent-light text-xs font-medium rounded-lg hover:bg-accent/30 transition-all"
+                            >
+                              View All Historical Questions
+                            </button>
+                            <button
+                              onClick={() => setShowReportModal(true)}
+                              className="px-3.5 py-1.5 bg-surface-600 border border-surface-400 text-gray-200 text-xs font-medium rounded-lg hover:bg-surface-500 transition-all flex items-center gap-1.5"
+                            >
+                              <Plus className="w-3.5 h-3.5 text-accent" />
+                              Log OA Experience
+                            </button>
+                          </>
+                        )}
+                        {searchQuery || filterDiff !== 'All' ? (
+                          <button
+                            onClick={() => { setSearchQuery(''); setFilterDiff('All'); }}
+                            className="px-3.5 py-1.5 bg-surface-600 border border-surface-400 text-gray-200 text-xs font-medium rounded-lg hover:bg-surface-500 transition-all"
+                          >
+                            Clear Filters
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
                   ) : (
                     filteredProblems.slice(0, 150).map((p) => {
                       const solved = isSolved(solvedMap, selectedSlug, p.id);
