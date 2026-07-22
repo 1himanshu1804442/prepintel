@@ -129,6 +129,94 @@ public class JobController {
         return ResponseEntity.ok(stats);
     }
 
+    // 3b. Dynamic Company Knowledge Graph Endpoint
+    @GetMapping("/companies/{slug}/knowledge-graph")
+    public ResponseEntity<Map<String, Object>> getCompanyKnowledgeGraph(@PathVariable String slug) {
+        Company company = companyRepository.findBySlug(slug)
+                .orElseThrow(() -> new IllegalArgumentException("Company not found: " + slug));
+
+        List<Object[]> topicStrings = reportRepository.getTopicsForCompany(slug);
+        Map<String, Integer> topicCounts = new LinkedHashMap<>();
+        int totalProblemCount = topicStrings.size();
+
+        for (Object[] row : topicStrings) {
+            String ts = (String) row[1];
+            if (ts != null && !ts.isBlank()) {
+                for (String topic : ts.split(",")) {
+                    String t = topic.trim();
+                    if (!t.isEmpty()) {
+                        topicCounts.merge(t, 1, Integer::sum);
+                    }
+                }
+            }
+        }
+
+        Map<String, String> prereqMap = new LinkedHashMap<>();
+        prereqMap.put("Array", "Foundational — Memory & Indexing");
+        prereqMap.put("String", "Foundational — Character Manipulation");
+        prereqMap.put("Math", "Foundational — Numerical Logic");
+        prereqMap.put("Two Pointers", "Prereq: Array / String");
+        prereqMap.put("Sliding Window", "Prereq: Two Pointers");
+        prereqMap.put("Hash Table", "Intermediate — Constant Time Lookup");
+        prereqMap.put("Linked List", "Intermediate — Pointer Chaining");
+        prereqMap.put("Binary Search", "Intermediate — Divide & Conquer");
+        prereqMap.put("Stack", "Intermediate — LIFO Evaluation");
+        prereqMap.put("Queue", "Intermediate — FIFO Scheduling");
+        prereqMap.put("Tree", "Hierarchical — Tree Traversal");
+        prereqMap.put("Depth-First Search", "Prereq: Tree / Graph");
+        prereqMap.put("Breadth-First Search", "Prereq: Queue & Graph");
+        prereqMap.put("Graph", "Complex — Network Traversal");
+        prereqMap.put("Dynamic Programming", "Advanced — Memoization & State Transitions");
+        prereqMap.put("Greedy", "Advanced — Optimal Substructure");
+        prereqMap.put("Backtracking", "Advanced — Combinatorial Search");
+        prereqMap.put("Matrix", "Intermediate — 2D Array Traversal");
+        prereqMap.put("Sorting", "Foundational — Order Calibration");
+
+        String[] colorPalettes = {
+            "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+            "bg-indigo-500/10 text-indigo-400 border-indigo-500/30",
+            "bg-accent/10 text-accent-light border-accent/30",
+            "bg-amber-500/10 text-amber-400 border-amber-500/30",
+            "bg-purple-500/10 text-purple-400 border-purple-500/30",
+            "bg-rose-500/10 text-rose-400 border-rose-500/30"
+        };
+
+        int colorIdx = 0;
+        List<Map<String, Object>> nodes = new ArrayList<>();
+        List<String> trajectory = new ArrayList<>();
+
+        List<Map.Entry<String, Integer>> sortedTopics = topicCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(6)
+                .collect(Collectors.toList());
+
+        for (Map.Entry<String, Integer> entry : sortedTopics) {
+            String topic = entry.getKey();
+            int count = entry.getValue();
+            int percent = totalProblemCount > 0 ? (int) Math.round((count * 100.0) / totalProblemCount) : 0;
+
+            Map<String, Object> node = new LinkedHashMap<>();
+            node.put("title", topic);
+            node.put("count", count);
+            node.put("percentage", percent);
+            node.put("sub", prereqMap.getOrDefault(topic, "Prereq: Data Structures"));
+            node.put("color", colorPalettes[colorIdx % colorPalettes.length]);
+            colorIdx++;
+
+            nodes.add(node);
+            trajectory.add(topic);
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("companyName", company.getName());
+        response.put("companySlug", company.getSlug());
+        response.put("totalProblems", totalProblemCount);
+        response.put("nodes", nodes);
+        response.put("trajectory", trajectory);
+
+        return ResponseEntity.ok(response);
+    }
+
     // 4. Latest Reports Feed (live ticker)
     @GetMapping("/reports/latest")
     public ResponseEntity<List<Map<String, Object>>> getLatestReports() {
