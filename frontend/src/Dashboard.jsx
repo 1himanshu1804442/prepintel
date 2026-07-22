@@ -1833,38 +1833,38 @@ function AboutModal({ onClose }) {
 
         <div className="p-6 overflow-y-auto max-h-[60vh] space-y-5">
           <p className="text-sm text-gray-300 leading-relaxed font-medium">
-            <strong>PrepIntel Pro</strong> is a premium, AI-powered interview intelligence dashboard tailored for college placements. It aggregates thousands of community-reported interview experiences across top global tech giants and Indian service/product companies.
+            <strong>PrepIntel Pro</strong> is an AI-powered placement intelligence platform. It aggregates historical interview questions across dozens of technology companies from open-source community-maintained datasets and timestamped student reports.
           </p>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Key Features</h4>
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Key Engineering Highlights</h4>
             <ul className="space-y-3 text-xs text-gray-400">
               <li className="flex items-start gap-2">
                 <Target className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span><strong>Curated Company Datasets:</strong> Capped to the top 400 most frequently asked and recent questions per company to maximize preparation ROI.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Flame className="w-4 h-4 text-danger shrink-0 mt-0.5" />
-                <span><strong>Smart Revision Mode & Presets:</strong> Toggle revision mode to bubble unsolved questions to the top, or click presets (Top 15, 30, 60) for instant night-before panic prep.</span>
+                <span><strong>Community-Curated Mappings:</strong> High-yield mappings between companies and frequently reported questions, configurable to balance search speed with analytical coverage.</span>
               </li>
               <li className="flex items-start gap-2">
                 <Sparkles className="w-4 h-4 text-warning shrink-0 mt-0.5" />
-                <span><strong>Contest Elo Ratings:</strong> View actual LeetCode contest rating badges (e.g. <span className="text-warning">★ 1845</span>) inline to understand true objective difficulty.</span>
+                <span><strong>Objective Difficulty Calibration:</strong> Integrates Zerotrac contest-derived Elo ratings (e.g. <span className="text-warning">★ 1845</span>) to calibrate coarse Easy/Medium/Hard tags into quantitative difficulty indices.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Flame className="w-4 h-4 text-danger shrink-0 mt-0.5" />
+                <span><strong>Smart Revision Mode & Presets:</strong> Toggle revision mode to bubble unsolved questions to the top, or click presets (Top 15, 30, 60) for targeted high-yield practice.</span>
               </li>
               <li className="flex items-start gap-2">
                 <RefreshCw className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                <span><strong>Zero-Friction Progress Sync:</strong> Paste your LeetCode username OR securely scrape and import your entire solved history of 400+ questions in 10 seconds via browser Console Paste.</span>
+                <span><strong>Zero-Friction Progress Sync:</strong> Synchronize your solved progress across platforms (LeetCode username or Console Paste) into a unified PostgreSQL profile.</span>
               </li>
               <li className="flex items-start gap-2">
                 <Calendar className="w-4 h-4 text-accent-light shrink-0 mt-0.5" />
-                <span><strong>Auto-Personalized Study Plans:</strong> Instantly generates a day-by-day calendar schedule while automatically filtering out and skipping questions you have already completed.</span>
+                <span><strong>Auto-Personalized Study Plans:</strong> Generates a day-by-day roadmap tailored to target roles while skipping completed questions.</span>
               </li>
             </ul>
           </div>
 
           <div className="glass-panel p-4 rounded-xl border border-surface-600 bg-surface-700/50">
             <p className="text-[11px] text-gray-400">
-              Data is sourced from popular open-source repositories and dynamically merged. Companies marked with a <span className="text-warning bg-warning/10 px-1 rounded border border-warning/20">⚠ Limited</span> badge have sparse public data available.
+              Data is ingested from open-source community repositories and timestamped candidate submissions. Historical repo commits provide baseline pattern mappings, while candidate reports provide recent recency signals.
             </p>
           </div>
         </div>
@@ -2009,29 +2009,49 @@ function ArchitectureModal({ onClose }) {
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[70vh] space-y-5">
-          <p className="text-xs text-gray-300">
-            PrepIntel is engineered as a decoupled, multi-tier placement intelligence platform:
-          </p>
+          {/* Dataset Version Banner */}
+          <div className="p-3 bg-surface-700/60 rounded-xl border border-surface-600 flex items-center justify-between text-xs font-mono">
+            <div>
+              <span className="text-gray-400">Active Dataset Version: </span>
+              <span className="text-emerald-400 font-bold">v2026.07.22</span>
+            </div>
+            <div className="flex items-center gap-3 text-[11px]">
+              <span className="text-gray-400">Total Questions: <strong className="text-white">18,432</strong></span>
+              <span className="text-gray-400">Target Companies: <strong className="text-white">69</strong></span>
+            </div>
+          </div>
 
-          {/* Pipeline Flow Diagram */}
+          {/* 7-Stage Pipeline Flow Diagram */}
           <div className="p-4 rounded-xl bg-surface-700/50 border border-surface-600 space-y-3">
-            <div className="text-[10px] text-accent-light uppercase font-semibold font-mono">End-to-End Data Pipeline</div>
-            <div className="grid grid-cols-4 gap-2 text-center text-[10px] font-mono">
-              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
-                <span className="text-emerald-400 font-bold block">1. Ingestion</span>
-                <span className="text-gray-400 text-[9px]">GitHub / Student Reports</span>
+            <div className="text-[10px] text-accent-light uppercase font-semibold font-mono">7-Stage Ingestion & Data Normalization Pipeline</div>
+            <div className="grid grid-cols-7 gap-1.5 text-center text-[9px] font-mono">
+              <div className="p-2 rounded bg-surface-800 border border-surface-600">
+                <span className="text-emerald-400 font-bold block">1. Raw Sources</span>
+                <span className="text-gray-500 text-[8px]">GitHub/OA Feeds</span>
               </div>
-              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
-                <span className="text-indigo-400 font-bold block">2. Processing</span>
-                <span className="text-gray-400 text-[9px]">Deduplication & Recency</span>
+              <div className="p-2 rounded bg-surface-800 border border-surface-600">
+                <span className="text-indigo-400 font-bold block">2. Parser</span>
+                <span className="text-gray-500 text-[8px]">Repo Diff Pull</span>
               </div>
-              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
-                <span className="text-amber-400 font-bold block">3. Analytics</span>
-                <span className="text-gray-400 text-[9px]">Cosine Vector Similarity</span>
+              <div className="p-2 rounded bg-surface-800 border border-surface-600">
+                <span className="text-amber-400 font-bold block">3. Normalize</span>
+                <span className="text-gray-500 text-[8px]">Slug Mapping</span>
               </div>
-              <div className="p-2.5 rounded bg-surface-800 border border-surface-600">
-                <span className="text-accent-light font-bold block">4. AI Layer</span>
-                <span className="text-gray-400 text-[9px]">Gemini 1.5 Flash Briefing</span>
+              <div className="p-2 rounded bg-surface-800 border border-surface-600">
+                <span className="text-accent-light font-bold block">4. Dedupe</span>
+                <span className="text-gray-500 text-[8px]">ID Matching</span>
+              </div>
+              <div className="p-2 rounded bg-surface-800 border border-surface-600">
+                <span className="text-rose-400 font-bold block">5. Topics</span>
+                <span className="text-gray-500 text-[8px]">DSA Tags</span>
+              </div>
+              <div className="p-2 rounded bg-surface-800 border border-surface-600">
+                <span className="text-cyan-400 font-bold block">6. Calibration</span>
+                <span className="text-gray-500 text-[8px]">Zerotrac Elo</span>
+              </div>
+              <div className="p-2 rounded bg-surface-800 border border-surface-600">
+                <span className="text-purple-400 font-bold block">7. Recommendation</span>
+                <span className="text-gray-500 text-[8px]">Cosine Matrix</span>
               </div>
             </div>
           </div>
@@ -2039,22 +2059,22 @@ function ArchitectureModal({ onClose }) {
           {/* Tech Stack Grid */}
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
-              <span className="text-[10px] text-gray-400 font-semibold uppercase">Backend Core</span>
-              <p className="text-white font-medium">Java 21 · Spring Boot 3 · REST API</p>
-              <p className="text-gray-400 text-[11px]">Strict layered architecture with Controller, Service, and JPA Repository layers.</p>
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">Backend Engineering</span>
+              <p className="text-white font-medium">Java 21 · Spring Boot 3 · JPA / Hibernate</p>
+              <p className="text-gray-400 text-[11px]">Strict layered architecture (Controller, Service, Repository) with automated database seeding.</p>
             </div>
             <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
               <span className="text-[10px] text-gray-400 font-semibold uppercase">Data & Persistence</span>
               <p className="text-white font-medium">PostgreSQL 16 Database</p>
-              <p className="text-gray-400 text-[11px]">Relational schema storing company datasets, interview reports, and solved progress maps.</p>
+              <p className="text-gray-400 text-[11px]">Relational database storing candidate submission logs, company vectors, and user solved maps.</p>
             </div>
             <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
               <span className="text-[10px] text-gray-400 font-semibold uppercase">Frontend Client</span>
               <p className="text-white font-medium">React 18 · Vite · TailwindCSS</p>
-              <p className="text-gray-400 text-[11px]">High-performance SPA with fast 60fps CSS micro-animations and zero scroll bounce.</p>
+              <p className="text-gray-400 text-[11px]">High-performance SPA with Framer Motion transitions and strict zero-scroll-bounce background reset.</p>
             </div>
             <div className="p-3.5 rounded-xl bg-surface-700/40 border border-surface-600 space-y-1.5">
-              <span className="text-[10px] text-gray-400 font-semibold uppercase">AI & Recommendation</span>
+              <span className="text-[10px] text-gray-400 font-semibold uppercase">AI & Math Engines</span>
               <p className="text-white font-medium">Gemini 1.5 Flash + Cosine Vector Engine</p>
               <p className="text-gray-400 text-[11px]">Combines deterministic vector similarity with LLM executive strategy summaries.</p>
             </div>
