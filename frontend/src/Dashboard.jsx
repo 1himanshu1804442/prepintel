@@ -188,6 +188,8 @@ export default function App() {
   const [presetLimit, setPresetLimit] = useState(null); // null, 15, 30, 60
   const [showAiSummaryModal, setShowAiSummaryModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showAlgoModal, setShowAlgoModal] = useState(false);
+  const [showGraphModal, setShowGraphModal] = useState(false);
   const [communityVotes, setCommunityVotes] = useState(() => {
     try { return JSON.parse(localStorage.getItem('prepintel_community_votes') || '{}'); }
     catch { return {}; }
@@ -428,6 +430,20 @@ export default function App() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowGraphModal(true)} 
+            className="text-[11px] text-accent-light hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer px-2.5 py-1 rounded-md bg-accent/10 border border-accent/20 hover:border-accent/40"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            Knowledge Graph
+          </button>
+          <button 
+            onClick={() => setShowAlgoModal(true)} 
+            className="text-[11px] text-emerald-400 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500/40"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            Formula ℹ️
+          </button>
           <button 
             onClick={() => setShowSyncModal(true)} 
             className="text-[11px] text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer px-2.5 py-1 rounded-md bg-surface-700/60 border border-surface-600 hover:border-surface-500"
@@ -1276,6 +1292,21 @@ export default function App() {
         {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
       </AnimatePresence>
 
+      {/* ─── Algorithm & Formula Modal ─── */}
+      <AnimatePresence>
+        {showAlgoModal && <AlgorithmModal onClose={() => setShowAlgoModal(false)} />}
+      </AnimatePresence>
+
+      {/* ─── Knowledge Graph Modal ─── */}
+      <AnimatePresence>
+        {showGraphModal && (
+          <KnowledgeGraphModal
+            onSelectTopic={(tName) => setSearchQuery(tName)}
+            onClose={() => setShowGraphModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ─── Sync Profile Modal ─── */}
       <AnimatePresence>
         {showSyncModal && (
@@ -1800,6 +1831,158 @@ function AboutModal({ onClose }) {
             <p className="text-[11px] text-gray-400">
               Data is sourced from popular open-source repositories and dynamically merged. Companies marked with a <span className="text-warning bg-warning/10 px-1 rounded border border-warning/20">⚠ Limited</span> badge have sparse public data available.
             </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// ALGORITHM & TRANSPARENT MATH FORMULA MODAL
+// ═══════════════════════════════════════════
+function AlgorithmModal({ onClose }) {
+  const dragControls = useDragControls();
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60"
+        onClick={onClose}
+      />
+      <motion.div
+        drag
+        dragControls={dragControls}
+        dragListener={false}
+        dragMomentum={false}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-[620px] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden flex flex-col bg-surface-800 modal-glow"
+      >
+        <div 
+          onPointerDown={(e) => dragControls.start(e)}
+          className="p-5 border-b border-surface-600 flex items-center justify-between cursor-move select-none"
+        >
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-accent-light" />
+            <h3 className="font-display font-bold text-lg text-white">Algorithm & Formula Transparency</h3>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[65vh] space-y-5">
+          <p className="text-xs text-gray-300 leading-relaxed font-medium">
+            Unlike static lists, PrepIntel calculates <strong>Predictive Topic Probabilities</strong> and <strong>Evidence Confidence Scores</strong> using a transparent, weighted mathematical ranking formula:
+          </p>
+
+          {/* Mathematical Formula Card */}
+          <div className="p-4 rounded-xl bg-surface-700/60 border border-surface-500 space-y-3 font-mono">
+            <div className="text-[11px] text-accent-light uppercase font-semibold">1. Predictive Topic Weight Formula</div>
+            <div className="p-3 bg-surface-800 rounded-lg text-xs text-emerald-300 border border-surface-600 text-center font-bold">
+              TopicScore = 0.45 × RecencyDecay(t) + 0.30 × HistFreq + 0.15 × CommunityVotes + 0.10 × Velocity
+            </div>
+            <p className="text-[10px] text-gray-400 font-sans leading-normal">
+              Where <code className="text-accent-light">RecencyDecay(t) = exp(-Δt / 180)</code> decays historical reports over a 180-day half-life.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-surface-700/60 border border-surface-500 space-y-3 font-mono">
+            <div className="text-[11px] text-accent-light uppercase font-semibold">2. Company Similarity Engine (Cosine Vector)</div>
+            <div className="p-3 bg-surface-800 rounded-lg text-xs text-indigo-300 border border-surface-600 text-center font-bold">
+              Similarity(A, B) = ( A · B ) / ( ||A|| × ||B|| )
+            </div>
+            <p className="text-[10px] text-gray-400 font-sans leading-normal">
+              Computes cosine similarity between topic frequency vectors of two companies to recommend transferable preparation strategies.
+            </p>
+          </div>
+
+          <div className="p-3.5 bg-accent/10 border border-accent/20 rounded-xl text-xs text-gray-300">
+            💡 <strong>Interview Talking Point:</strong> Explain how recency decay curves and cosine vector projections avoid subjective static lists while producing verifiable predictive rankings.
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// DSA KNOWLEDGE GRAPH MODAL
+// ═══════════════════════════════════════════
+function KnowledgeGraphModal({ onSelectTopic, onClose }) {
+  const dragControls = useDragControls();
+  const GRAPH_NODES = [
+    { title: 'Arrays & Strings', sub: 'Foundational', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
+    { title: 'Two Pointers', sub: 'Prereq: Arrays', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' },
+    { title: 'Sliding Window', sub: 'Prereq: Pointers', color: 'bg-accent/10 text-accent-light border-accent/30' },
+    { title: 'Trees & Binary Search', sub: 'Hierarchical Data', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
+    { title: 'Graph BFS & DFS', sub: 'Prereq: Trees', color: 'bg-purple-500/10 text-purple-400 border-purple-500/30' },
+    { title: 'Dynamic Programming', sub: 'Advanced Optimization', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30' }
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60"
+        onClick={onClose}
+      />
+      <motion.div
+        drag
+        dragControls={dragControls}
+        dragListener={false}
+        dragMomentum={false}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-[680px] glass-panel rounded-2xl border border-surface-500 z-[60] overflow-hidden flex flex-col bg-surface-800 modal-glow"
+      >
+        <div 
+          onPointerDown={(e) => dragControls.start(e)}
+          className="p-5 border-b border-surface-600 flex items-center justify-between cursor-move select-none"
+        >
+          <div className="flex items-center gap-2">
+            <Globe className="w-5 h-5 text-accent-light" />
+            <h3 className="font-display font-bold text-lg text-white">DSA Prerequisite Knowledge Graph</h3>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white cursor-pointer"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[65vh] space-y-6">
+          <p className="text-xs text-gray-300">Explore topic dependencies to build systematic mastery. Click any topic node to filter practice questions instantly.</p>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {GRAPH_NODES.map((node, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  onSelectTopic(node.title.split(' ')[0]);
+                  onClose();
+                }}
+                className={`p-4 rounded-xl border text-left flex flex-col justify-between hover:scale-105 transition-all cursor-pointer ${node.color}`}
+              >
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-70 block mb-1">Step {idx + 1}</span>
+                  <h4 className="font-bold text-sm text-white">{node.title}</h4>
+                </div>
+                <span className="text-[10px] font-mono opacity-80 mt-3">{node.sub} →</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="p-4 rounded-xl bg-surface-700/40 border border-surface-600 space-y-2">
+            <h4 className="text-xs font-semibold text-white">Suggested Learning Trajectory</h4>
+            <div className="flex items-center gap-2 text-[11px] text-gray-400 font-mono flex-wrap">
+              <span>Arrays</span> <span>→</span>
+              <span>Sliding Window</span> <span>→</span>
+              <span>Trees</span> <span>→</span>
+              <span>Graph BFS</span> <span>→</span>
+              <span className="text-accent-light font-bold">Dynamic Programming</span>
+            </div>
           </div>
         </div>
       </motion.div>
