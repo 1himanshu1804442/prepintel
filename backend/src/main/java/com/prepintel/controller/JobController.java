@@ -599,8 +599,16 @@ public class JobController {
         map.put("weightedScore", Math.round(ranking.weightedScore() * 100.0) / 100.0);
         map.put("lastVerifiedAt", ranking.lastVerifiedAt());
         map.put("dataFreshnessLabel", ranking.dataFreshnessLabel());
+
+        // New: 4-signal confidence breakdown for transparency
+        map.put("confidencePercent", ranking.confidencePercent());
+        map.put("freqSignal", ranking.freqSignal());
+        map.put("recencySignal", ranking.recencySignal());
+        map.put("verificationSignal", ranking.verificationSignal());
+        map.put("diversitySignal", ranking.diversitySignal());
         return map;
     }
+
 
     private String defaultValue(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
