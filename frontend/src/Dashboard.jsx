@@ -5,7 +5,7 @@ import {
   Search, ChevronRight, ExternalLink, Check, X, Sparkles,
   Calendar, BarChart3, Clock, Filter, ArrowUpDown, TrendingUp,
   Zap, Target, BookOpen, Flame, ChevronDown, Loader2, CheckCircle2,
-  Database, MessageSquare, Globe, RefreshCw, Brain, Copy
+  Database, MessageSquare, Globe, RefreshCw, Brain, Copy, Plus
 } from 'lucide-react';
 
 const API = 'http://localhost:8080/api';
