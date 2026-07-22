@@ -62,22 +62,26 @@ public class InterviewReportRankingService {
     }
 
     private static boolean isInRequestedWindow(InterviewReport report, String timeframe, LocalDate cutoff) {
-        if (timeframe == null || "all_time".equals(timeframe) || cutoff == null) {
+        // "all_time" always includes everything — both GitHub historical and community reports
+        if (timeframe == null || "all_time".equals(timeframe)) {
             return true;
         }
-        if (report.getReportedAt() != null) {
-            return !report.getReportedAt().isBefore(cutoff);
+
+        // "1_year" means "GitHub Repos" — show only historical scraped data (no real timestamp)
+        if ("1_year".equals(timeframe)) {
+            return report.getReportedAt() == null;
         }
-        // Fallback for legacy scraped records with null reportedAt
-        String tf = report.getTimeframe();
-        if (tf == null) return false;
-        return switch (timeframe) {
-            case "30_days" -> "30_days".equals(tf);
-            case "3_months" -> "30_days".equals(tf) || "3_months".equals(tf);
-            case "6_months" -> "30_days".equals(tf) || "3_months".equals(tf) || "6_months".equals(tf);
-            case "1_year" -> !"all_time".equals(tf);
-            default -> true;
-        };
+
+        // "30_days" and "3_months" are RECENT filters — they require a REAL reportedAt timestamp.
+        // GitHub-scraped records have reportedAt=null, so they are excluded here.
+        // This prevents the bug where GitHub folder names like "30_days.csv" were being
+        // treated as real recency evidence when they're just repository structure labels.
+        if (report.getReportedAt() == null) {
+            return false;
+        }
+
+        // For community-submitted reports with real timestamps, apply the date cutoff
+        return !report.getReportedAt().isBefore(cutoff);
     }
 
     private static boolean matchesRole(InterviewReport report, String normalizedRole) {
