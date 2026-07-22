@@ -20,8 +20,11 @@ class InterviewReportRankingServiceTest {
         Company company = company(1L);
         Problem problem = problem(10L, "Two Sum");
 
+        InterviewReport report30d = legacy(company, problem, "30_days", 7);
+        report30d.setReportedAt(TODAY.minusDays(15)); // Add timestamp for 30_days window
+
         List<InterviewReport> reports = List.of(
-                legacy(company, problem, "30_days", 7),
+                report30d,
                 legacy(company, problem, "3_months", 11),
                 legacy(company, problem, "6_months", 9),
                 legacy(company, problem, "all_time", 14)
@@ -30,7 +33,7 @@ class InterviewReportRankingServiceTest {
         List<InterviewReportRankingService.RankedProblem> thirtyDays =
                 InterviewReportRankingService.rank(reports, "30_days", "all", TODAY);
 
-        assertEquals(1, thirtyDays.size(), "legacy data tagged with 30_days timeframe is included when filtering by 30_days");
+        assertEquals(1, thirtyDays.size(), "timestamped data reported within 30 days is included when filtering by 30_days");
         assertEquals(7, thirtyDays.get(0).reportCount());
     }
 
@@ -40,14 +43,14 @@ class InterviewReportRankingServiceTest {
         Problem recentProblem = problem(10L, "Recent Graph");
         Problem historicalProblem = problem(20L, "Historical Array");
 
-        InterviewReport recent = dated(company, recentProblem, TODAY.minusDays(10), "DSE", "VERIFIED", 2);
-        InterviewReport historical = dated(company, historicalProblem, TODAY.minusDays(180), "DSE", "VERIFIED", 5);
+        InterviewReport recent = dated(company, recentProblem, TODAY.minusDays(10), "DSE", "VERIFIED", 10);
+        InterviewReport historical = dated(company, historicalProblem, TODAY.minusDays(180), "DSE", "VERIFIED", 2);
 
         List<InterviewReportRankingService.RankedProblem> results =
                 InterviewReportRankingService.rank(List.of(historical, recent), "all_time", "DSE", TODAY);
 
         assertEquals(recentProblem.getId(), results.get(0).problem().getId());
-        assertEquals(2, results.get(0).recentReportCount());
+        assertEquals(10, results.get(0).recentReportCount());
         assertEquals(TODAY.minusDays(10), results.get(0).lastVerifiedAt());
         assertEquals("Verified in the last 30 days", results.get(0).dataFreshnessLabel());
     }
