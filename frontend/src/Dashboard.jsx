@@ -300,32 +300,25 @@ export default function App() {
       );
     }
 
-    // Pattern Velocity
-    const velocityList = topTopics.slice(0, 4).map((t, idx) => {
-      const baseVelocities = ['↑ +22%', '↑ +16%', '↑ +11%', '↓ -3%'];
-      const textColors = ['text-emerald-400', 'text-emerald-400', 'text-emerald-400', 'text-gray-500'];
+    // Topic Frequency Share — shows each topic's share of total questions (honest, computed from real data)
+    const totalQuestionCount = topTopics.reduce((sum, t) => sum + (t.count || 0), 0) || 1;
+    const frequencyList = topTopics.slice(0, 4).map((t) => {
+      const share = Math.round(((t.count || 0) / totalQuestionCount) * 100);
       return {
         topic: t.topic,
-        velocity: baseVelocities[idx % baseVelocities.length],
-        textColor: textColors[idx % textColors.length]
+        share: `${share}%`,
+        count: t.count || 0,
+        textColor: share >= 20 ? 'text-emerald-400' : share >= 10 ? 'text-amber-400' : 'text-gray-400'
       };
     });
 
-    if (velocityList.length === 0) {
-      velocityList.push(
-        { topic: 'Arrays & Strings', velocity: '↑ +18%', textColor: 'text-emerald-400' },
-        { topic: 'Two Pointers', velocity: '↑ +14%', textColor: 'text-emerald-400' },
-        { topic: 'Trees & Graphs', velocity: '↑ +9%', textColor: 'text-emerald-400' },
-        { topic: 'Bit Manipulation', velocity: '↓ -4%', textColor: 'text-gray-500' }
-      );
-    }
+    // Average Evidence Confidence — only uses real backend-computed values, no silent fallbacks
+    const problemsWithConfidence = problems.filter(p => p.confidencePercent != null && p.confidencePercent > 0);
+    const avgConfidence = problemsWithConfidence.length > 0
+      ? Math.round(problemsWithConfidence.reduce((acc, p) => acc + p.confidencePercent, 0) / problemsWithConfidence.length)
+      : null; // null means "not enough data" — displayed honestly in UI
 
-    // Average Evidence Confidence
-    const avgConfidence = problems.length > 0
-      ? Math.round(problems.slice(0, 20).reduce((acc, p) => acc + (p.confidencePercent || 75), 0) / Math.min(20, problems.length))
-      : 88;
-
-    return { probabilities, velocityList, avgConfidence };
+    return { probabilities, frequencyList, avgConfidence };
   }, [companyStats, problems]);
 
   // Auto-select first company
@@ -461,8 +454,11 @@ export default function App() {
     return list.filter(c => c && c.name && c.name.toLowerCase().includes(q));
   }, [companies, companySearch, companyCategory]);
 
-  // "Updated X ago" for live indicator
-  const updatedAgo = timeAgo(lastUpdated.toISOString());
+  // Dataset loaded timestamp — shows when data was loaded into the current session, not a live feed
+  const dataLoadedAt = useMemo(() => {
+    const now = lastUpdated;
+    return `${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }, [lastUpdated]);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -520,8 +516,8 @@ export default function App() {
             About
           </button>
           <div className="flex items-center gap-2">
-            <div className="pulse-dot w-2 h-2 rounded-full bg-success" />
-            <span className="text-[10px] text-gray-500">Updated {updatedAgo}</span>
+            <div className="w-2 h-2 rounded-full bg-gray-500" />
+            <span className="text-[10px] text-gray-500">Data loaded {dataLoadedAt}</span>
           </div>
         </div>
       </header>
@@ -584,7 +580,7 @@ export default function App() {
                   onClick={() => setCompanyCategory('campus')}
                   className={`flex-1 py-1 text-[10px] font-semibold rounded transition-colors flex items-center justify-center gap-1 ${companyCategory === 'campus' ? 'bg-accent/20 text-accent-light border border-accent/30' : 'text-gray-500 hover:text-gray-300'}`}
                 >
-                  🎯 Campus (8)
+                  🎯 Campus Target (8)
                 </button>
               </div>
             )}
@@ -662,7 +658,7 @@ export default function App() {
                   <div className="flex items-center gap-4 mt-2">
                     <span className="text-xs text-gray-500">{problems.length} curated problems</span>
                     <span className="text-xs text-gray-600">·</span>
-                    <a href="https://github.com/hxu296/leetcode-company-wise-problems-2022" target="_blank" rel="noopener noreferrer" className="text-xs text-accent-light hover:underline font-medium transition-colors cursor-pointer">{totalReports.toLocaleString()} community reports →</a>
+                    <a href="https://github.com/hxu296/leetcode-company-wise-problems-2022" target="_blank" rel="noopener noreferrer" className="text-xs text-accent-light hover:underline font-medium transition-colors cursor-pointer">{totalReports.toLocaleString()} sourced frequency datapoints →</a>
                   </div>
                   {sidebarTab === 'companies' && selectedCompany?.oaPattern && selectedCompany.oaPattern !== 'Unknown' && (
                     <div className="mt-2 flex items-center gap-2">
@@ -702,18 +698,18 @@ export default function App() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-display font-bold text-lg text-white">Placement Intelligence Engine</h3>
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Feed Active
+                          <span className="px-2 py-0.5 rounded-full bg-surface-600 text-gray-400 border border-surface-500 text-[10px] font-semibold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-500" /> Static Dataset
                           </span>
                         </div>
-                        <p className="text-xs text-gray-400 mt-0.5">Real-time trend analysis & predictive OA probabilities for {selectedCompany.name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Frequency analysis & predictive OA probabilities for {selectedCompany.name} (from open-source datasets)</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">Evidence Confidence</span>
-                        <span className="text-sm font-bold text-emerald-400 font-mono">{dynamicAnalytics.avgConfidence}% High Confidence</span>
+                        <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">Avg. Confidence Score</span>
+                        <span className={`text-sm font-bold font-mono ${dynamicAnalytics.avgConfidence != null ? 'text-emerald-400' : 'text-gray-500'}`}>{dynamicAnalytics.avgConfidence != null ? `${dynamicAnalytics.avgConfidence}%` : 'N/A'}</span>
                       </div>
                       <button
                         onClick={() => setShowReportModal(true)}
@@ -727,17 +723,17 @@ export default function App() {
 
                   {/* Analytics Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Trend Velocity */}
+                    {/* Topic Frequency Share — computed from actual question counts per topic */}
                     <div className="p-4 rounded-xl bg-surface-700/40 border border-surface-600 space-y-2.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pattern Velocity</span>
-                        <span className="text-[10px] text-accent-light font-mono">Past 30 Days</span>
+                        <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Topic Frequency Share</span>
+                        <span className="text-[10px] text-gray-500 font-mono">From Dataset</span>
                       </div>
                       <div className="space-y-1.5">
-                        {dynamicAnalytics.velocityList.map((item, idx) => (
+                        {dynamicAnalytics.frequencyList.map((item, idx) => (
                           <div key={idx} className="flex items-center justify-between text-xs">
-                            <span className="text-gray-300 font-medium truncate max-w-[140px]">{item.topic}</span>
-                            <span className={`${item.textColor} font-bold text-[11px]`}>{item.velocity}</span>
+                            <span className="text-gray-300 font-medium truncate max-w-[120px]">{item.topic}</span>
+                            <span className={`${item.textColor} font-bold text-[11px]`}>{item.share} ({item.count})</span>
                           </div>
                         ))}
                       </div>
@@ -773,15 +769,15 @@ export default function App() {
                       <div className="space-y-2 text-xs">
                         <div className="flex items-center justify-between p-1.5 rounded bg-surface-800/80 border border-surface-600">
                           <span className="text-gray-300">GitHub Community Repos</span>
-                          <span className="text-emerald-400 font-bold text-[10px]">Verified ✓</span>
+                          <span className="text-amber-400 font-bold text-[10px]">Open-Source Import</span>
                         </div>
                         <div className="flex items-center justify-between p-1.5 rounded bg-surface-800/80 border border-surface-600">
                           <span className="text-gray-300">LeetCode Discuss OA Feeds</span>
-                          <span className="text-emerald-400 font-bold text-[10px]">Verified ✓</span>
+                          <span className="text-gray-400 font-bold text-[10px]">Unverified</span>
                         </div>
                         <div className="flex items-center justify-between p-1.5 rounded bg-surface-800/80 border border-surface-600">
-                          <span className="text-gray-300">Candidate Student Reports</span>
-                          <span className="text-accent-light font-bold text-[10px]">Active ({totalReports})</span>
+                          <span className="text-gray-300">Student-Submitted Reports</span>
+                          <span className="text-accent-light font-bold text-[10px]">{totalReports} datapoints</span>
                         </div>
                       </div>
                     </div>
