@@ -8,7 +8,7 @@ import {
   Database, MessageSquare, Globe, RefreshCw, Brain, Copy, Plus
 } from 'lucide-react';
 
-const API = 'http://localhost:8080/api';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // Company emoji/color mapping
 const COMPANY_ICONS = {
